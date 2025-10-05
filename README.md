@@ -42,6 +42,12 @@ node webserver.js
 Notes:
 - If you want live reloading during development, install `nodemon` globally and use `npm run dev:web`.
 
+3. Turn off the Server
+
+```shell
+pkill -f "node webserver.js"
+```
+
 ## Warning
 
 This operation is not thread-safe. Do not run multiple instances against the same save directory concurrently.

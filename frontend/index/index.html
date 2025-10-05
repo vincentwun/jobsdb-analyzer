@@ -15,15 +15,15 @@
     <aside class="sidebar">
       <div class="logo">JobsDB Analyzer</div>
       <nav class="nav" role="navigation">
-        <button data-tab="home" class="active">Home</button>
-        <button data-tab="result">Result</button>
-        <button data-tab="analysis">Analysis</button>
+        <a href="/" class="nav-link active">Home</a>
+        <a href="/result.html" class="nav-link">Result</a>
+        <a href="/analysis.html" class="nav-link">Analysis</a>
       </nav>
       <div style="margin-top:auto;font-size:12px;color:var(--muted)">Local UI — development</div>
     </aside>
 
     <main class="main">
-      <section id="home" class="panel" data-visible>
+      <section class="panel">
         <h2>Search Filter</h2>
         <div class="grid" style="margin-top:12px">
           <div>
@@ -70,20 +70,6 @@
             </div>
           </aside>
         </div>
-      </section>
-
-      <section id="result" class="panel" style="display:none">
-        <h2>Result</h2>
-        <div style="margin-top:12px">
-          <label>Saved file</label>
-          <div id="resultMeta" style="margin-bottom:12px;color:var(--muted)">—</div>
-          <pre id="jsonView">No file loaded</pre>
-        </div>
-      </section>
-
-      <section id="analysis" class="panel" style="display:none">
-        <h2>Analysis</h2>
-        <p style="color:var(--muted);margin-top:8px">Future enhancements and insights will be added here.</p>
       </section>
     </main>
   </div>

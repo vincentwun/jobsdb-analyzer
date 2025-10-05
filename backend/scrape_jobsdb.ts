@@ -53,7 +53,7 @@ async function main(options : any){
     }
     //Start cloudnodes
     for (let i = 0; i < numCloudNodes; i++) {
-      const serverProcess = spawn('node', ['build/src/cloudnode',String(i),String(enableLogging)]);
+  const serverProcess = spawn('node', ['build/backend/cloudnode',String(i),String(enableLogging)]);
       logger.info(`Starting cloudnode ${i+1}...`);
       cloudNodeProcesses.push(serverProcess);
     }

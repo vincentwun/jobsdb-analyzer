@@ -9,7 +9,18 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'frontend')));
+
+// Serve top-level routes directly from frontend subfolders to avoid client-side redirects
+app.get('/', (req, res) => {
+  return res.sendFile(path.join(__dirname, 'frontend', 'index', 'index.html'));
+});
+app.get('/result.html', (req, res) => {
+  return res.sendFile(path.join(__dirname, 'frontend', 'result', 'result.html'));
+});
+app.get('/analysis.html', (req, res) => {
+  return res.sendFile(path.join(__dirname, 'frontend', 'analysis', 'analysis.html'));
+});
 
 // Simple SSE client registry keyed by token
 const sseClients = new Map();
@@ -43,7 +54,7 @@ app.post('/scrape', async (req, res) => {
     if (!fs.existsSync(resultsDir)) fs.mkdirSync(resultsDir, { recursive: true });
 
     // Build CLI args
-    const args = ['build/src/scrape_jobsdb', 'scrape', '-r', region, '-n', pagesArg, '-s', resultsDir];
+  const args = ['build/backend/scrape_jobsdb', 'scrape', '-r', region, '-n', pagesArg, '-s', resultsDir];
     if (keywords && keywords.trim().length > 0) {
       args.push('--keywords');
       args.push(keywords);

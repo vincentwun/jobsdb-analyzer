@@ -1,9 +1,9 @@
-import { findLastPage, isZeroResults } from '../src/scrape_utils';
+import { findLastPage, isZeroResults } from '../backend/scrape_utils';
 import HeroCore from '@ulixee/hero-core';
 import { TransportBridge } from '@ulixee/net';
 import { ConnectionToHeroCore } from '@ulixee/hero';
 import Hero from '@ulixee/hero';
-import NoSandboxPlugin from '../src/NoSandboxPlugin'
+import NoSandboxPlugin from '../backend/NoSandboxPlugin'
 
 describe('Find last page', () => {
     let heroes : Hero[];

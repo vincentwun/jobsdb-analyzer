@@ -138,6 +138,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-# Temporary files
+# Others
 build
-jobsdb_scrape_results
+jobsdb_scrape_results/jobsdb-*

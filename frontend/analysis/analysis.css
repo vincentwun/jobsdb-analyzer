@@ -1,0 +1,6 @@
+/* Analysis page specific styles */
+/* Inherits sidebar, nav, and global styles from /index/index.css */
+
+.panel h2 {
+  margin-bottom: 16px;
+}

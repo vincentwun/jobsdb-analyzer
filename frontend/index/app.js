@@ -1,25 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // tabs
-  const tabs = document.querySelectorAll('.nav button');
-  const sections = { home: document.getElementById('home'), result: document.getElementById('result'), analysis: document.getElementById('analysis') };
-
-  function showTab(name){
-    Object.keys(sections).forEach(k => {
-      const el = sections[k];
-      if(k === name){ el.style.display = ''; }
-      else { el.style.display = 'none'; }
-    });
-    tabs.forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-  }
-
-  tabs.forEach(b => b.addEventListener('click', () => showTab(b.dataset.tab)));
-
   // form and result behavior
   const form = document.getElementById('scrapeForm');
   const numPagesInput = document.getElementById('numPages');
   const resultBox = document.getElementById('resultBox');
-  const jsonView = document.getElementById('jsonView');
-  const resultMeta = document.getElementById('resultMeta');
 
   document.querySelectorAll('input[name="pagesMode"]').forEach(el => {
     el.addEventListener('change', (e) => {
@@ -39,14 +22,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if(bar) bar.style.width = pct + '%';
     if(percent) percent.innerText = pct + '%';
     if(text && log){
-      // append new text line (keep short)
       log.innerText = text.trim();
     }
   }
 
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
-    // prepare UI
     document.getElementById('resultLog').innerHTML = '';
     updateProgress(0, 'Starting...');
 
@@ -80,7 +61,6 @@ document.addEventListener('DOMContentLoaded', () => {
       token
     };
 
-    // send POST; server will still respond with final JSON
     try {
       const res = await fetch('/scrape', {
         method: 'POST',
@@ -94,37 +74,16 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const json = await res.json();
-      // show saved file and content
-      document.getElementById('resultLog').innerHTML = `<div>Saved file: <strong>${json.file}</strong></div><div style="margin-top:8px"><a href="/result.html?file=${encodeURIComponent(json.file)}" target="_blank">View result</a></div>`;
-      resultMeta.innerText = json.file || '—';
-      jsonView.innerText = json.content || '';
+      document.getElementById('resultLog').innerHTML = `<div>Saved file: <strong>${json.file}</strong></div><div style="margin-top:8px"><a href="/result.html?file=${encodeURIComponent(json.file)}">View result</a></div>`;
       updateProgress(100, 'Completed');
-      showTab('result');
+      
+      // Redirect to result page with file parameter
+      setTimeout(() => {
+        window.location.href = `/result.html?file=${encodeURIComponent(json.file)}`;
+      }, 1000);
     } catch (e) {
       document.getElementById('resultLog').innerHTML = '<pre>' + e.toString() + '</pre>';
       try{ evt.close(); }catch(err){}
     }
   });
-
-  // allow loading a saved result file by name into Result tab
-  async function loadResultFile(file){
-    if(!file) return;
-    try{
-      const res = await fetch(`/results/${encodeURIComponent(file)}`);
-      if(!res.ok){ jsonView.innerText = 'Failed to load result'; return }
-      const text = await res.text();
-      resultMeta.innerText = file;
-      jsonView.innerText = text;
-      showTab('result');
-    } catch(err){ jsonView.innerText = err.toString(); }
-  }
-
-  // if result.html was opened with ?file=..., support direct loading (when index.html is used with query param)
-  (function tryLoadFromQuery(){
-    try{
-      const params = new URLSearchParams(window.location.search);
-      const file = params.get('file');
-      if(file) loadResultFile(file);
-    }catch(e){}
-  })();
 });

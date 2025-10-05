@@ -20,8 +20,9 @@ html, body { height: 100%; margin: 0; background: linear-gradient(180deg, #f8faf
 .sidebar { width: 220px; background: var(--card); padding: 20px; border-right: 1px solid #eef2f7; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px }
 .logo { font-weight: 700; color: var(--accent); font-size: 16px; margin-bottom: 8px }
 .nav { display: flex; flex-direction: column; gap: 6px }
-.nav button { background: transparent; border: 0; padding: 10px; border-radius: 8px; text-align: left; color: var(--muted); cursor: pointer; font-weight: 600 }
-.nav button.active { background: linear-gradient(90deg, rgba(79, 70, 229, 0.08), rgba(79, 70, 229, 0.04)); color: var(--accent) }
+.nav-link { background: transparent; border: 0; padding: 10px; border-radius: 8px; text-align: left; color: var(--muted); cursor: pointer; font-weight: 600; text-decoration: none; display: block }
+.nav-link.active { background: linear-gradient(90deg, rgba(79, 70, 229, 0.08), rgba(79, 70, 229, 0.04)); color: var(--accent) }
+.nav-link:hover { background: rgba(79, 70, 229, 0.04) }
 
 /* main */
 .main { flex: 1; padding: 28px }

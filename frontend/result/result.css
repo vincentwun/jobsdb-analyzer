@@ -1,0 +1,8 @@
+/* Result page specific styles - inherits sidebar from index.css */
+#meta{margin-bottom:12px;color:#333;font-weight:600;font-size:14px}
+pre{white-space:pre-wrap;background:#f7f7f7;padding:12px;border-radius:6px;overflow:auto;max-height:calc(100vh - 200px);font-size:13px;line-height:1.5}
+
+/* Optional: nicer scrollbar on supported browsers */
+pre::-webkit-scrollbar{height:10px;width:10px}
+pre::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:6px}
+pre::-webkit-scrollbar-track{background:transparent}
