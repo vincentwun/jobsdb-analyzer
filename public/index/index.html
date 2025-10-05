@@ -58,7 +58,16 @@
 
           <aside>
             <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Result preview</div>
-            <div id="resultBox"><em>Submit to run scraper; results will be shown here when complete.</em></div>
+            <div id="resultBox">
+              <div id="progressWrap" style="display:block;margin-bottom:8px">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Progress</div>
+                <div style="background:#eef2ff;border-radius:8px;padding:4px;">
+                  <div id="progressBar" style="width:0%;height:12px;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:6px"></div>
+                </div>
+                <div id="progressPercent" style="font-size:12px;color:var(--muted);margin-top:6px">0%</div>
+              </div>
+              <div id="resultLog" style="font-size:13px;color:var(--muted)"><em>Submit to run scraper; results will be shown here when complete.</em></div>
+            </div>
           </aside>
         </div>
       </section>

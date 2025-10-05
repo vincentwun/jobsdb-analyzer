@@ -140,3 +140,4 @@ vite.config.ts.timestamp-*
 
 # Temporary files
 build
+jobsdb_scrape_results

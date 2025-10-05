@@ -1,6 +1,6 @@
 # JobsDB-Analyzer
 
-This project is a **derivative work** base on **[krishgalani](https://github.com/krishgalani/jobsdb-scraper) (MIT LICENSE)**
+This project is a **derivative work** base on **[krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper) (MIT LICENSE)**
 
 
 A lightweight, production-oriented scraper for JobsDB job listings. It collects job IDs from search pages and fetches job details via JobsDB's backend APIs. The project is designed to be efficient and run on commodity hardware.
