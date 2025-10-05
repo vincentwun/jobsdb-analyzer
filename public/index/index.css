@@ -1,0 +1,44 @@
+/* extracted styles from original index.html */
+:root {
+  --bg: #f5f7fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent: #4f46e5;
+  --glass: rgba(255, 255, 255, 0.6);
+  --radius: 12px;
+  --shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+* { box-sizing: border-box }
+
+html, body { height: 100%; margin: 0; background: linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%); color: #0f172a }
+
+.app { display: flex; min-height: 100vh }
+
+/* sidebar */
+.sidebar { width: 220px; background: var(--card); padding: 20px; border-right: 1px solid #eef2f7; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px }
+.logo { font-weight: 700; color: var(--accent); font-size: 16px; margin-bottom: 8px }
+.nav { display: flex; flex-direction: column; gap: 6px }
+.nav button { background: transparent; border: 0; padding: 10px; border-radius: 8px; text-align: left; color: var(--muted); cursor: pointer; font-weight: 600 }
+.nav button.active { background: linear-gradient(90deg, rgba(79, 70, 229, 0.08), rgba(79, 70, 229, 0.04)); color: var(--accent) }
+
+/* main */
+.main { flex: 1; padding: 28px }
+.panel { background: var(--card); padding: 20px; border-radius: var(--radius); box-shadow: var(--shadow) }
+.grid { display: grid; grid-template-columns: 1fr 360px; gap: 18px }
+
+/* Home form */
+label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 13px }
+.field { margin-bottom: 12px }
+.row { display: flex; gap: 8px; align-items: center }
+input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #e6eef8; background: transparent }
+.actions { display: flex; gap: 8px; justify-content: flex-end }
+button.primary { background: var(--accent); color: white; padding: 10px 14px; border-radius: 8px; border: 0; cursor: pointer }
+pre { background: #f7f7fb; padding: 12px; border-radius: 8px; max-height: 420px; overflow: auto }
+
+/* responsive */
+@media (max-width:900px) {
+  .sidebar { display: none }
+  .grid { grid-template-columns: 1fr }
+}

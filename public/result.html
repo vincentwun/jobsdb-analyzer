@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>JobsDB Scrape Result</title>
+    <script>
+      (function(){
+        var target = '/result/result.html' + window.location.search;
+        if (window.location.replace) window.location.replace(target);
+        else window.location.href = target;
+      })();
+    </script>
+    <noscript>
+      <meta http-equiv="refresh" content="0; url=/result/result.html">
+    </noscript>
+  </head>
+  <body>
+    <p>Redirecting to <a href="/result/result.html">/result/result.html</a></p>
+  </body>
+</html>
