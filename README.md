@@ -1,17 +1,21 @@
 # JobsDB-Analyzer
 
-This project is a **derivative work** base on **[krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper) (MIT LICENSE)**
+This project is a **derivative work** based on **[krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper) (MIT LICENSE)**
 
 
-A lightweight, production-oriented scraper for JobsDB job listings. It collects job IDs from search pages and fetches job details via JobsDB's backend APIs. The project is designed to be efficient and run on commodity hardware.
+JobsDB-Analyzer is a lightweight scraper for JobsDB that extracts job IDs, fetches job details via JobsDB APIs, and outputs structured JSON. It includes a local Web UI and early work on LLM-powered analysis and containerized deployment, and is designed to run on modest hardware.
 
-## Installation
+## Roadmap
+
+- [x] Web UI
+- [ ] Integrated LLM Analysis (Developing)
+- [ ] Containerize (Developing)
+
+## Quick Start
 
 Requirements:
 
 - [Node.js 18+](https://nodejs.org/en/download/)
-
-Quick setup:
 
 1. Clone the repository
 
@@ -27,22 +31,24 @@ npm install
 npm run build
 ```
 
-## How to use
-
-1. Run the local web UI
+3. Run the local web UI
 
 ```shell
 npm run start:web
-# Or
+```
+or
+```shell
 node webserver.js
 ```
 
-2. Open http://localhost:3000 in your browser, fill the form and submit. When the scrape completes the page will provide a link to view the generated JSON file.
+4. Open http://localhost:3000 in your browser.
+- Fill the form and submit. 
+- When the scrape completes the page will provide a link to view the generated JSON file.
 
 Notes:
 - If you want live reloading during development, install `nodemon` globally and use `npm run dev:web`.
 
-3. Turn off the Server
+5. Turn off the Server
 
 ```shell
 pkill -f "node webserver.js"
