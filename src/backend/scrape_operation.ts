@@ -82,17 +82,14 @@ export class ScrapeOperation {
     matchesFilterText(text: string): boolean {
         if (!text) return false;
         const norm = text.toLowerCase();
+        // If no keywords provided, do not filter (accept all)
+        if (!this.keywords || this.keywords.length === 0) return true;
+
         // If explicit keywords provided, require any keyword to appear in text
-        if (this.keywords && this.keywords.length > 0) {
-            for (const kw of this.keywords) {
-                if (norm.includes(kw)) return true;
-            }
-            return false;
+        for (const kw of this.keywords) {
+            if (norm.includes(kw)) return true;
         }
-        // Fallback: original heuristic for cloud engineer
-        const phrase = 'cloud engineer';
-        if (norm.includes(phrase)) return true;
-        return norm.includes('cloud') && norm.includes('engineer');
+        return false;
     }
     
     /*Scraping Logic*/

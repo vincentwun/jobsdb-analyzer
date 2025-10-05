@@ -139,5 +139,5 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Others
-build
+dist
 jobsdb_scrape_results/jobsdb-*

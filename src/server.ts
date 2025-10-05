@@ -1,33 +1,34 @@
-const express = require('express');
-const path = require('path');
-const { spawn } = require('child_process');
-const fs = require('fs');
-const os = require('os');
+import express from 'express';
+import path from 'path';
+import { spawn } from 'child_process';
+import fs from 'fs';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'frontend')));
+app.use(express.static(path.join(__dirname, '../public')));
+// Serve compiled frontend JS from dist/frontend under /dist
+app.use('/dist', express.static(path.join(__dirname, '../dist/frontend')));
 
-// Serve top-level routes directly from frontend subfolders to avoid client-side redirects
+// Serve top-level routes directly from public subfolders to avoid client-side redirects
 app.get('/', (req, res) => {
-  return res.sendFile(path.join(__dirname, 'frontend', 'index', 'index.html'));
+  return res.sendFile(path.join(__dirname, '../public', 'index', 'index.html'));
 });
 app.get('/result.html', (req, res) => {
-  return res.sendFile(path.join(__dirname, 'frontend', 'result', 'result.html'));
+  return res.sendFile(path.join(__dirname, '../public', 'result', 'result.html'));
 });
 app.get('/analysis.html', (req, res) => {
-  return res.sendFile(path.join(__dirname, 'frontend', 'analysis', 'analysis.html'));
+  return res.sendFile(path.join(__dirname, '../public', 'analysis', 'analysis.html'));
 });
 
 // Simple SSE client registry keyed by token
-const sseClients = new Map();
+const sseClients = new Map<string, express.Response>();
 
 // SSE endpoint for progress updates. Client should connect with ?token=XYZ
 app.get('/scrape/stream', (req, res) => {
-  const token = req.query.token;
+  const token = req.query.token as string;
   if (!token) return res.status(400).send('token required');
   // set SSE headers
   res.writeHead(200, {
@@ -44,23 +45,24 @@ app.get('/scrape/stream', (req, res) => {
 
 app.post('/scrape', async (req, res) => {
   try {
-    const { region, pagesMode, numPages, keywords } = req.body;
-    const token = req.body.token;
+    const { region, pagesMode, numPages, keywords, token } = req.body;
+    
     // Determine pages arg
     let pagesArg = numPages;
     if (pagesMode === 'max') pagesArg = 'all';
+    
     // Ensure output dir
-    const resultsDir = path.join(__dirname, 'jobsdb_scrape_results');
+    const resultsDir = path.join(__dirname, '../jobsdb_scrape_results');
     if (!fs.existsSync(resultsDir)) fs.mkdirSync(resultsDir, { recursive: true });
 
     // Build CLI args
-  const args = ['build/backend/scrape_jobsdb', 'scrape', '-r', region, '-n', pagesArg, '-s', resultsDir];
+    const args = ['dist/backend/scrape_jobsdb.js', 'scrape', '-r', region, '-n', pagesArg, '-s', resultsDir];
     if (keywords && keywords.trim().length > 0) {
       args.push('--keywords');
       args.push(keywords);
     }
 
-    const child = spawn('node', args, { cwd: __dirname });
+    const child = spawn('node', args, { cwd: path.join(__dirname, '..') });
 
     let stdout = '';
     let stderr = '';
@@ -106,6 +108,7 @@ app.post('/scrape', async (req, res) => {
         // ignore parse errors
       }
     });
+    
     child.stderr.on('data', (data) => {
       stderr += data.toString();
     });
@@ -113,50 +116,60 @@ app.post('/scrape', async (req, res) => {
     child.on('close', (code) => {
       if (code !== 0) {
         // notify SSE client of failure
-        if (token && sseClients.has(token)){
+        if (token && sseClients.has(token)) {
           const client = sseClients.get(token);
-          client.write(`event: error\n`);
-          client.write(`data: ${JSON.stringify({ error: 'Scraper failed', code, stderr })}\n\n`);
-          try{ client.end(); }catch(e){}
-          sseClients.delete(token);
+          if (client) {
+            client.write(`event: error\n`);
+            client.write(`data: ${JSON.stringify({ error: 'Scraper failed', code, stderr })}\n\n`);
+            try { client.end(); } catch (e) { }
+            sseClients.delete(token);
+          }
         }
         return res.status(500).json({ error: 'Scraper failed', code, stderr });
       }
+      
       // Find latest result file in resultsDir
       const files = fs.readdirSync(resultsDir)
         .filter(f => f.endsWith('.json'))
         .map(f => ({ f, m: fs.statSync(path.join(resultsDir, f)).mtime.getTime() }))
-        .sort((a,b) => b.m - a.m);
+        .sort((a, b) => b.m - a.m);
+        
       if (files.length === 0) return res.status(500).json({ error: 'No result file produced' });
+      
       const latest = files[0].f;
       const content = fs.readFileSync(path.join(resultsDir, latest), 'utf8');
+      
       // notify SSE client of completion
-      if (token && sseClients.has(token)){
+      if (token && sseClients.has(token)) {
         const client = sseClients.get(token);
-        client.write(`event: done\n`);
-        client.write(`data: ${JSON.stringify({ file: latest })}\n\n`);
-        try{ client.end(); }catch(e){}
-        sseClients.delete(token);
+        if (client) {
+          client.write(`event: done\n`);
+          client.write(`data: ${JSON.stringify({ file: latest })}\n\n`);
+          try { client.end(); } catch (e) { }
+          sseClients.delete(token);
+        }
       }
       return res.json({ file: latest, content });
     });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: err.toString() });
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    res.status(500).json({ error: errorMessage });
   }
 });
 
 // Serve result files under /results/<filename>
 app.get('/results/:file', (req, res) => {
   try {
-    const resultsDir = path.join(__dirname, 'jobsdb_scrape_results');
+    const resultsDir = path.join(__dirname, '../jobsdb_scrape_results');
     const file = req.params.file;
     const filePath = path.join(resultsDir, file);
     if (!fs.existsSync(filePath)) return res.status(404).send('Not found');
     return res.sendFile(filePath);
   } catch (err) {
-    return res.status(500).send(err.toString());
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return res.status(500).send(errorMessage);
   }
 });
 

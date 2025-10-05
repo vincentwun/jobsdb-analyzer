@@ -53,7 +53,9 @@ async function main(options : any){
     }
     //Start cloudnodes
     for (let i = 0; i < numCloudNodes; i++) {
-  const serverProcess = spawn('node', ['build/backend/cloudnode',String(i),String(enableLogging)]);
+      // Use the compiled cloudnode JS relative to the running file's __dirname
+      const cloudnodePath = path.join(__dirname, 'cloudnode.js');
+      const serverProcess = spawn('node', [cloudnodePath, String(i), String(enableLogging)]);
       logger.info(`Starting cloudnode ${i+1}...`);
       cloudNodeProcesses.push(serverProcess);
     }

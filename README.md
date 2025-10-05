@@ -34,24 +34,22 @@ npm run build
 3. Run the local web UI
 
 ```shell
-npm run start:web
-```
-or
-```shell
-node webserver.js
+npm start
 ```
 
 4. Open http://localhost:3000 in your browser.
-- Fill the form and submit. 
-- When the scrape completes the page will provide a link to view the generated JSON file.
 
-Notes:
-- If you want live reloading during development, install `nodemon` globally and use `npm run dev:web`.
 
-5. Turn off the Server
+5. Verify and Turn off the Server
 
 ```shell
-pkill -f "node webserver.js"
+# Verify Turn off the Server
+pgrep -a node
+```
+
+```shell
+# Turn off the Server
+pkill -f "node dist/server.js"
 ```
 
 ## Warning
