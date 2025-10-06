@@ -14,7 +14,7 @@ JobsDB Analyzer is an interactive web application designed for analyzing JobsDB 
 
 - [x] Web UI
 - [x] Integrated AI Analysis
-- [ ] Integrated Agent Workflow
+- [x] Integrated Agent Workflow
 - [ ] Containerize
 
 ## Quick Start
