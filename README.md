@@ -1,14 +1,19 @@
 # JobsDB-Analyzer
 
-This project is a **derivative work** based on **[krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper) (MIT LICENSE)**
+## Credits
 
+Original author: [krishgalani](https://github.com/krishgalani)
 
-JobsDB-Analyzer is a lightweight scraper for JobsDB that extracts job IDs, fetches job details via JobsDB APIs, and outputs structured JSON. It includes a local Web UI and early work on LLM-powered analysis and containerized deployment, and is designed to run on modest hardware.
+This project is built on top of the excellent open source project **[krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper)**.
+
+## Overview
+
+JobsDB Analyzer is an interactive web application designed for analyzing JobsDB job data. It automatically scrapes job postings and leverages Google Gemini AI to perform multi-dimensional semantic analysis on skills, certifications, experience, and locations. Analysis results are presented with modern charts, tables, and summaries.
 
 ## Roadmap
 
 - [x] Web UI
-- [x] Integrated LLM Analysis (Developing)
+- [x] Integrated AI Analysis
 - [ ] Containerize (Developing)
 
 ## Quick Start
@@ -60,9 +65,6 @@ This operation is not thread-safe. Do not run multiple instances against the sam
 
 The scraper uses the [Ulixee](https://nodejs.org/en/download/) stack. A small number of local cloud nodes host browser environments. Workers pop pages from a shared queue, parse job IDs from HTML responses, then fetch job details via backend GraphQL endpoints. Results are streamed and written to a local JSON file.
 
-## Credit
-
-Original author: [krishgalani](https://github.com/krishgalani)
 
 ## License
 
