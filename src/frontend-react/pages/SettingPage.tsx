@@ -1,56 +1,81 @@
-import React, { useState, useEffect, FormEvent } from 'react';
-
-const GEMINI_MODELS = [
-  { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
-  { value: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite Latest' },
-  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-  { value: 'gemini-flash-latest', label: 'Gemini Flash Latest' },
-  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
-];
+import React, { useState, useEffect, useRef } from 'react';
+import { GEMINI_MODELS, STORAGE_KEYS, DEFAULT_VALUES } from '../utils/constants';
+import { saveToLocalStorage, getFromLocalStorage } from '../utils/localStorage';
 
 export const SettingPage: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
-  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash-lite');
+  const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_VALUES.GEMINI_MODEL);
   const [saveStatus, setSaveStatus] = useState<string>('');
+  
+  // Flag to prevent auto-save on initial mount
+  const initialLoadComplete = useRef<boolean>(false);
 
+  // Load saved settings on mount
   useEffect(() => {
-    const storedKey = localStorage.getItem('GEMINI_API_KEY') || '';
-    const storedModel = localStorage.getItem('GEMINI_MODEL') || 'gemini-2.5-flash-lite';
+    const storedKey = getFromLocalStorage(STORAGE_KEYS.GEMINI_API_KEY);
+    const storedModel = getFromLocalStorage(STORAGE_KEYS.GEMINI_MODEL, DEFAULT_VALUES.GEMINI_MODEL);
     setApiKey(storedKey);
     setSelectedModel(storedModel);
+
+    // Mark initial load complete on next tick to prevent auto-save trigger
+    setTimeout(() => {
+      initialLoadComplete.current = true;
+    }, 0);
   }, []);
 
-  const handleSave = (e?: FormEvent) => {
-    if (e) e.preventDefault();
+  // Timer ref for debouncing apiKey saves
+  const apiKeyTimer = useRef<number | null>(null);
 
-    const trimmedKey = apiKey.trim();
-
-    if (!trimmedKey) {
-      showStatus('Please enter a Gemini API key');
-      return;
-    }
-
-    try {
-      localStorage.setItem('GEMINI_API_KEY', trimmedKey);
-      localStorage.setItem('GEMINI_MODEL', selectedModel);
-      showStatus('✓ Saved');
-    } catch (err) {
-      console.error('Failed to save settings', err);
-      showStatus('Failed to save');
-    }
+  // Shared save helper to avoid repeating showStatus/error handling
+  const saveSetting = (storageKey: string, value: string) => {
+    const success = saveToLocalStorage(storageKey, value);
+    showStatus(success ? '✓ Saved' : 'Failed to save');
   };
+
+  // Auto-save API key when it changes (debounced)
+  useEffect(() => {
+    // Don't auto-save during initial load
+    if (!initialLoadComplete.current) return;
+
+    // Skip if unchanged or empty
+    const stored = getFromLocalStorage(STORAGE_KEYS.GEMINI_API_KEY);
+    const trimmedKey = apiKey.trim();
+    if (trimmedKey === '' || trimmedKey === stored) return;
+
+    if (apiKeyTimer.current) {
+      clearTimeout(apiKeyTimer.current);
+    }
+    apiKeyTimer.current = window.setTimeout(() => {
+      saveSetting(STORAGE_KEYS.GEMINI_API_KEY, trimmedKey);
+      apiKeyTimer.current = null;
+    }, DEFAULT_VALUES.DEBOUNCE_DELAY);
+
+    return () => {
+      if (apiKeyTimer.current) clearTimeout(apiKeyTimer.current);
+    };
+  }, [apiKey]);
+
+  // Auto-save model when it changes (immediate)
+  useEffect(() => {
+    // Don't auto-save during initial load
+    if (!initialLoadComplete.current) return;
+
+    const storedModel = getFromLocalStorage(STORAGE_KEYS.GEMINI_MODEL);
+    if (selectedModel === storedModel) return;
+    saveSetting(STORAGE_KEYS.GEMINI_MODEL, selectedModel);
+  }, [selectedModel]);
 
   const showStatus = (text: string) => {
     setSaveStatus(text);
     setTimeout(() => {
       setSaveStatus('');
-    }, 2500);
+    }, DEFAULT_VALUES.STATUS_DISPLAY_DURATION);
   };
 
   return (
     <section className="panel">
       <h2>Settings</h2>
-      <p className="muted-note">Configure your Gemini API settings (stored locally in localStorage)</p>
+      <p className="muted-note">Configure your Gemini API settings (auto-saved to localStorage)</p>
 
       <div className="settings-wrapper">
         <div className="setting-field">
@@ -62,12 +87,6 @@ export const SettingPage: React.FC = () => {
             placeholder="Enter Gemini API Key"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault();
-                handleSave();
-              }
-            }}
           />
         </div>
 
@@ -87,17 +106,11 @@ export const SettingPage: React.FC = () => {
           </select>
         </div>
 
-        <div className="setting-actions">
-          <button id="saveSettings" className="btn-accent" onClick={handleSave}>
-            <i className="fas fa-floppy-disk" aria-hidden="true" style={{ marginRight: '6px' }}></i>
-            Save
-          </button>
-          {saveStatus && (
-            <div id="saveStatus" className="save-status">
-              {saveStatus}
-            </div>
-          )}
-        </div>
+        {saveStatus && (
+          <div className="save-status" style={{ marginTop: '12px', color: '#065f46' }}>
+            {saveStatus}
+          </div>
+        )}
       </div>
     </section>
   );

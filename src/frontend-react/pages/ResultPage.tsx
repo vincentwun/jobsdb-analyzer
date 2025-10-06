@@ -4,7 +4,7 @@ import { parseJobsFromJson, JobSummary } from '../utils/jobParser';
 import { FileSelector } from '../components/FileSelector';
 
 export const ResultPage: React.FC = () => {
-  const { files, selectedFile, setSelectedFile, isLoading, error, loadFileData } = useResultFiles(true);
+  const { files, selectedFile, setSelectedFile, isLoading, error, jobCount, loadFileData } = useResultFiles(true);
   const [jobSummaries, setJobSummaries] = useState<JobSummary[]>([]);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export const ResultPage: React.FC = () => {
           files={files}
           selectedFile={selectedFile}
           onFileChange={setSelectedFile}
-          jobCount={jobSummaries.length}
+          jobCount={jobCount}
         />
 
         {isLoading && <div className="readable-view">Loading...</div>}

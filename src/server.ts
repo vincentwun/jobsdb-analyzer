@@ -2,10 +2,15 @@ import express from 'express';
 import path from 'path';
 import { spawn } from 'child_process';
 import fs from 'fs';
-// only require connect-livereload in dev time to avoid adding a runtime dep in prod
+
+// Only require connect-livereload in dev time to avoid adding a runtime dep in prod
 let connectLivereload: any = null;
 if (process.env.LIVERELOAD === 'true') {
-  try { connectLivereload = require('connect-livereload'); } catch (e) { /* ignore */ }
+  try { 
+    connectLivereload = require('connect-livereload'); 
+  } catch (e) { 
+    /* ignore */ 
+  }
 }
 
 const app = express();
@@ -16,32 +21,57 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
 // Serve compiled frontend assets from dist
 app.use('/dist', express.static(path.join(__dirname, '.')));
 
 // Serve React app for all main routes
 const htmlPath = path.join(__dirname, 'index.html');
-app.get('/', (req, res) => {
-  return res.sendFile(htmlPath);
-});
-app.get('/result.html', (req, res) => {
-  return res.sendFile(htmlPath);
-});
-app.get('/analysis.html', (req, res) => {
-  return res.sendFile(htmlPath);
-});
-app.get('/setting.html', (req, res) => {
-  return res.sendFile(htmlPath);
+const mainRoutes = ['/', '/result.html', '/analysis.html', '/setting.html'];
+
+mainRoutes.forEach(route => {
+  app.get(route, (req, res) => res.sendFile(htmlPath));
 });
 
 // Simple SSE client registry keyed by token
 const sseClients = new Map<string, express.Response>();
 
-// SSE endpoint for progress updates. Client should connect with ?token=XYZ
+/**
+ * Send SSE event to client
+ */
+function sendSSEEvent(token: string, event: string, data: any): void {
+  const client = sseClients.get(token);
+  if (client) {
+    try {
+      client.write(`event: ${event}\n`);
+      client.write(`data: ${JSON.stringify(data)}\n\n`);
+    } catch (err) {
+      console.error(`Failed to send SSE event ${event}:`, err);
+    }
+  }
+}
+
+/**
+ * Close SSE connection
+ */
+function closeSSEConnection(token: string): void {
+  const client = sseClients.get(token);
+  if (client) {
+    try {
+      client.end();
+    } catch (err) {
+      console.error('Failed to close SSE connection:', err);
+    }
+    sseClients.delete(token);
+  }
+}
+
+// SSE endpoint for progress updates
 app.get('/scrape/stream', (req, res) => {
   const token = req.query.token as string;
   if (!token) return res.status(400).send('token required');
-  // set SSE headers
+  
+  // Set SSE headers
   res.writeHead(200, {
     'Content-Type': 'text/event-stream',
     'Cache-Control': 'no-cache',
@@ -49,6 +79,7 @@ app.get('/scrape/stream', (req, res) => {
   });
   res.write('\n');
   sseClients.set(token, res);
+  
   req.on('close', () => {
     sseClients.delete(token);
   });
@@ -103,44 +134,32 @@ app.post('/scrape', async (req, res) => {
 
     child.stdout.on('data', (data) => {
       stdout += data.toString();
-      // try to parse progress from stdout
-      try {
-        const txt = data.toString();
-        // look for percent like '12%' or 'Progress: 12%'
-        const m = txt.match(/(\d{1,3})\s*%/);
-        if (m) {
-          const pct = Math.max(0, Math.min(100, parseInt(m[1], 10)));
-          const client = token && sseClients.get(token);
-          if (client) {
-            client.write(`event: progress\n`);
-            client.write(`data: ${JSON.stringify({ percent: pct, text: txt })}\n\n`);
-          }
-        } else {
-          // look for page X of Y patterns and convert to percent
-          const m2 = txt.match(/page\s*(?:[:#])?\s*(\d+)\s*(?:of|\/)\s*(\d+)/i) || txt.match(/(\d+)\s*\/\s*(\d+)/);
-          if (m2) {
-            const cur = parseInt(m2[1], 10);
-            const tot = parseInt(m2[2], 10);
-            if (tot > 0) {
-              const pct = Math.max(0, Math.min(100, Math.round((cur / tot) * 100)));
-              const client = token && sseClients.get(token);
-              if (client) {
-                client.write(`event: progress\n`);
-                client.write(`data: ${JSON.stringify({ percent: pct, text: txt })}\n\n`);
-              }
-            }
-          } else {
-            // send generic log event
-            const client = token && sseClients.get(token);
-            if (client) {
-              client.write(`event: log\n`);
-              client.write(`data: ${JSON.stringify({ text: txt })}\n\n`);
-            }
-          }
-        }
-      } catch (e) {
-        // ignore parse errors
+      
+      // Parse progress from stdout
+      const txt = data.toString();
+      
+      // Look for percent like '12%' or 'Progress: 12%'
+      const percentMatch = txt.match(/(\d{1,3})\s*%/);
+      if (percentMatch) {
+        const pct = Math.max(0, Math.min(100, parseInt(percentMatch[1], 10)));
+        sendSSEEvent(token, 'progress', { percent: pct, text: txt });
+        return;
       }
+      
+      // Look for page X of Y patterns and convert to percent
+      const pageMatch = txt.match(/page\s*(?:[:#])?\s*(\d+)\s*(?:of|\/)\s*(\d+)/i) || txt.match(/(\d+)\s*\/\s*(\d+)/);
+      if (pageMatch) {
+        const cur = parseInt(pageMatch[1], 10);
+        const tot = parseInt(pageMatch[2], 10);
+        if (tot > 0) {
+          const pct = Math.max(0, Math.min(100, Math.round((cur / tot) * 100)));
+          sendSSEEvent(token, 'progress', { percent: pct, text: txt });
+          return;
+        }
+      }
+      
+      // Send generic log event
+      sendSSEEvent(token, 'log', { text: txt });
     });
 
     child.stderr.on('data', (data) => {
@@ -149,16 +168,9 @@ app.post('/scrape', async (req, res) => {
 
     child.on('close', (code) => {
       if (code !== 0) {
-        // notify SSE client of failure
-        if (token && sseClients.has(token)) {
-          const client = sseClients.get(token);
-          if (client) {
-            client.write(`event: error\n`);
-            client.write(`data: ${JSON.stringify({ error: 'Scraper failed', code, stderr })}\n\n`);
-            try { client.end(); } catch (e) { }
-            sseClients.delete(token);
-          }
-        }
+        // Notify SSE client of failure
+        sendSSEEvent(token, 'error', { error: 'Scraper failed', code, stderr });
+        closeSSEConnection(token);
         return res.status(500).json({ error: 'Scraper failed', code, stderr });
       }
 
@@ -173,16 +185,10 @@ app.post('/scrape', async (req, res) => {
       const latest = files[0].f;
       const content = fs.readFileSync(path.join(resultsDir, latest), 'utf8');
 
-      // notify SSE client of completion
-      if (token && sseClients.has(token)) {
-        const client = sseClients.get(token);
-        if (client) {
-          client.write(`event: done\n`);
-          client.write(`data: ${JSON.stringify({ file: latest })}\n\n`);
-          try { client.end(); } catch (e) { }
-          sseClients.delete(token);
-        }
-      }
+      // Notify SSE client of completion
+      sendSSEEvent(token, 'done', { file: latest });
+      closeSSEConnection(token);
+      
       return res.json({ file: latest, content });
     });
 

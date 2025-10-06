@@ -1,10 +1,24 @@
 import React, { useState, FormEvent, ChangeEvent } from 'react';
+import { safeCloseEventSource, parseSSEData, generateToken } from '../utils/eventSource';
 
 interface ScrapeFormData {
   region: string;
   pagesMode: string;
   numPages: string;
   keywords: string;
+}
+
+interface ProgressEvent {
+  percent: number;
+  text?: string;
+}
+
+interface LogEvent {
+  text: string;
+}
+
+interface ErrorEvent {
+  error: string;
 }
 
 export const IndexPage: React.FC = () => {
@@ -28,62 +42,44 @@ export const IndexPage: React.FC = () => {
     setFormData(prev => ({ ...prev, pagesMode: value, numPages: value === 'custom' ? prev.numPages : '' }));
   };
 
-  const genToken = (): string => {
-    return Math.random().toString(36).slice(2) + Date.now().toString(36);
-  };
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setResultLog('');
     setProgress(0);
     setIsLoading(true);
 
-    const token = genToken();
-    const evt = new EventSource(`/scrape/stream?token=${encodeURIComponent(token)}`);
+    const token = generateToken();
+    const eventSource = new EventSource(`/scrape/stream?token=${encodeURIComponent(token)}`);
 
-    evt.addEventListener('progress', (e: MessageEvent) => {
-      try {
-        const d = JSON.parse(e.data);
-        if (typeof d.percent === 'number') {
-          setProgress(d.percent);
-          setResultLog(d.text || `Progress: ${d.percent}%`);
-        }
-      } catch (err) {
-        console.error('Progress parse error:', err);
+    // Handle progress updates
+    eventSource.addEventListener('progress', (e: MessageEvent) => {
+      const data = parseSSEData<ProgressEvent>(e);
+      if (data && typeof data.percent === 'number') {
+        setProgress(data.percent);
+        setResultLog(data.text || `Progress: ${data.percent}%`);
       }
     });
 
-    evt.addEventListener('log', (e: MessageEvent) => {
-      try {
-        const d = JSON.parse(e.data);
-        setResultLog(d.text || '');
-      } catch (e) {
-        console.error('Log parse error:', e);
+    // Handle log messages
+    eventSource.addEventListener('log', (e: MessageEvent) => {
+      const data = parseSSEData<LogEvent>(e);
+      if (data) {
+        setResultLog(data.text || '');
       }
     });
 
-    evt.addEventListener('error', (e: MessageEvent) => {
-      try {
-        const d = JSON.parse(e.data);
-        setResultLog(`Error: ${d.error || ''}`);
-      } catch (err) {
-        setResultLog('Error occurred');
-      }
-      try {
-        evt.close();
-      } catch (e) {
-        console.error('Close error:', e);
-      }
+    // Handle errors
+    eventSource.addEventListener('error', (e: MessageEvent) => {
+      const data = parseSSEData<ErrorEvent>(e);
+      setResultLog(data ? `Error: ${data.error || ''}` : 'Error occurred');
+      safeCloseEventSource(eventSource);
       setIsLoading(false);
     });
 
-    evt.addEventListener('done', () => {
+    // Handle completion
+    eventSource.addEventListener('done', () => {
       setProgress(100);
-      try {
-        evt.close();
-      } catch (e) {
-        console.error('Close error:', e);
-      }
+      safeCloseEventSource(eventSource);
       setIsLoading(false);
     });
 
@@ -102,11 +98,7 @@ export const IndexPage: React.FC = () => {
       if (!res.ok) {
         const err = await res.json();
         setResultLog(err.error || JSON.stringify(err));
-        try {
-          evt.close();
-        } catch (e) {
-          console.error('Close error:', e);
-        }
+        safeCloseEventSource(eventSource);
         setIsLoading(false);
         return;
       }
@@ -121,11 +113,7 @@ export const IndexPage: React.FC = () => {
       }, 1000);
     } catch (e) {
       setResultLog(e instanceof Error ? e.message : String(e));
-      try {
-        evt.close();
-      } catch (err) {
-        console.error('Close error:', err);
-      }
+      safeCloseEventSource(eventSource);
       setIsLoading(false);
     }
   };

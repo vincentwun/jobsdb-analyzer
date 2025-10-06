@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { extractJobContents } from '../utils/jobParser';
 
 /**
  * Custom hook for loading and managing result files
@@ -8,6 +9,7 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
   const [selectedFile, setSelectedFile] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [jobCount, setJobCount] = useState<number>(0);
 
   // Load file list from server
   const loadFileList = async () => {
@@ -45,6 +47,31 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
     }
   };
 
+  // Auto-load job count when file is selected
+  useEffect(() => {
+    const loadJobCount = async () => {
+      if (!selectedFile) {
+        setJobCount(0);
+        return;
+      }
+
+      try {
+        const jobData = await loadFileData(selectedFile);
+        if (jobData) {
+          const jobContents = extractJobContents(jobData);
+          setJobCount(jobContents.length);
+        } else {
+          setJobCount(0);
+        }
+      } catch (error) {
+        console.error('Failed to load job count:', error);
+        setJobCount(0);
+      }
+    };
+
+    loadJobCount();
+  }, [selectedFile]);
+
   useEffect(() => {
     loadFileList();
 
@@ -64,6 +91,7 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
     setSelectedFile,
     isLoading,
     error,
+    jobCount,
     loadFileData,
     refreshFiles: loadFileList
   };
