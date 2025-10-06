@@ -43,23 +43,6 @@ async function main(options : any){
   const baseUrl = get_base_url(region)
   const numPages = options.numPages
   const maxPages = options.maxPages
-  // If running under Jest and saving to tests dir, create a dummy result to avoid starting cloudnodes
-  if (process.env.JEST_WORKER_ID && String(resultsDir).includes('tests')) {
-    try {
-      const now = new Date();
-      const formattedDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}-${String(now.getHours()).padStart(2, '0')}_${String(now.getMinutes()).padStart(2, '0')}_${String(now.getSeconds()).padStart(2, '0')}.${String(now.getMilliseconds()).padStart(3, '0')}`;
-      const resultFileName = `jobsdb-${region}-${numPages}-${formattedDate}.json`;
-      const resultPath = path.join(resultsDir, resultFileName);
-      const dummy = [{ page: { jobs: [] } }];
-      if (!fs.existsSync(resultsDir)) fs.mkdirSync(resultsDir, { recursive: true });
-      fs.writeFileSync(resultPath, JSON.stringify(dummy, null, 2), 'utf8');
-      console.log(`(test mode) Result file saved to ${resultPath}`);
-      return;
-    } catch (err) {
-      console.error('Failed to write dummy test result:', err);
-      throw err;
-    }
-  }
   try { 
     if (numPages > 10){
       numCloudNodes = 2
@@ -70,17 +53,9 @@ async function main(options : any){
     }
     //Start cloudnodes
     for (let i = 0; i < numCloudNodes; i++) {
-      // Prefer compiled cloudnode JS; fall back to running the TS source via ts-node in dev/test
-      const cloudnodeJs = path.join(__dirname, 'cloudnode.js');
-      const cloudnodeTs = path.join(__dirname, 'cloudnode.ts');
-      let serverProcess: ChildProcessWithoutNullStreams;
-      if (fs.existsSync(cloudnodeJs)) {
-        serverProcess = spawn('node', [cloudnodeJs, String(i), String(enableLogging)]);
-      } else if (fs.existsSync(cloudnodeTs)) {
-        serverProcess = spawn(process.execPath, ['-r', 'ts-node/register', cloudnodeTs, String(i), String(enableLogging)], { cwd: process.cwd(), env: process.env });
-      } else {
-        throw new Error('cloudnode script not found (expected cloudnode.js or cloudnode.ts)');
-      }
+      // Use the compiled cloudnode JS relative to the running file's __dirname
+      const cloudnodePath = path.join(__dirname, 'cloudnode.js');
+      const serverProcess = spawn('node', [cloudnodePath, String(i), String(enableLogging)]);
       logger.info(`Starting cloudnode ${i+1}...`);
       cloudNodeProcesses.push(serverProcess);
     }
