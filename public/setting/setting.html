@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Settings - JobsDB Analyzer</title>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" as="style"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <link rel="stylesheet" href="/index/index.css">
+  <link rel="stylesheet" href="/setting/setting.css">
+</head>
+
+<body>
+  <div class="app">
+    <aside class="sidebar" data-inject></aside>
+
+    <main class="main">
+      <section class="panel">
+        <h2>Settings</h2>
+        <p style="color:var(--muted);margin-top:8px">Enter your Gemini API Key (stored locally in localStorage)</p>
+
+        <div style="margin-top:24px;max-width:600px">
+          <div class="setting-field">
+            <label for="gemKey" style="display:block;font-weight:600;margin-bottom:8px">Gemini API Key</label>
+            <input id="gemKey" type="password" class="setting-input" placeholder="Enter Gemini API Key"
+              style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:14px" />
+          </div>
+
+          <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
+            <button id="saveSettings" class="btn-accent" style="padding:10px 24px;font-size:14px">💾 Save</button>
+            <div id="saveStatus" style="font-size:14px;color:#065f46;display:none">✓ Saved</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/dist/app.js"></script>
+  <script src="/dist/setting.js"></script>
+</body>
+
+</html>

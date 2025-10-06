@@ -1,8 +1,81 @@
 /* Result page specific styles - inherits sidebar from index.css */
-#meta{margin-bottom:12px;color:#333;font-weight:600;font-size:14px}
-pre{white-space:pre-wrap;background:#f7f7f7;padding:12px;border-radius:6px;overflow:auto;max-height:calc(100vh - 200px);font-size:13px;line-height:1.5}
+#meta {
+  margin-bottom: 12px;
+  color: #333;
+  font-weight: 600;
+  font-size: 14px
+}
+
+pre {
+  white-space: pre-wrap;
+  background: #f7f7f7;
+  padding: 12px;
+  border-radius: 6px;
+  overflow: auto;
+  max-height: calc(100vh - 200px);
+  font-size: 13px;
+  line-height: 1.5
+}
 
 /* Optional: nicer scrollbar on supported browsers */
-pre::-webkit-scrollbar{height:10px;width:10px}
-pre::-webkit-scrollbar-thumb{background:rgba(0,0,0,0.15);border-radius:6px}
-pre::-webkit-scrollbar-track{background:transparent}
+pre::-webkit-scrollbar {
+  height: 10px;
+  width: 10px
+}
+
+pre::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 6px
+}
+
+pre::-webkit-scrollbar-track {
+  background: transparent
+}
+
+/* Job summary list styles */
+.job-summary-list {
+  padding-left: 16px;
+  margin: 0;
+}
+
+.job-summary {
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 8px;
+  background: var(--card);
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+}
+
+.job-row {
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.job-meta {
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+
+.skill {
+  display: inline-block;
+  background: var(--accent);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-right: 4px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.skill.muted {
+  background: #ddd;
+  color: #666;
+}
+
+.job-snippet {
+  color: #444;
+  font-size: 13px;
+  margin-top: 6px;
+}

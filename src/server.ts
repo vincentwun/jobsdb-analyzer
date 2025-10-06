@@ -2,8 +2,16 @@ import express from 'express';
 import path from 'path';
 import { spawn } from 'child_process';
 import fs from 'fs';
+// only require connect-livereload in dev time to avoid adding a runtime dep in prod
+let connectLivereload: any = null;
+if (process.env.LIVERELOAD === 'true') {
+  try { connectLivereload = require('connect-livereload'); } catch (e) { /* ignore */ }
+}
 
 const app = express();
+if (connectLivereload) {
+  app.use(connectLivereload({ src: '/livereload.js?snipver=1' }));
+}
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -21,6 +29,9 @@ app.get('/result.html', (req, res) => {
 });
 app.get('/analysis.html', (req, res) => {
   return res.sendFile(path.join(__dirname, '../public', 'analysis', 'analysis.html'));
+});
+app.get('/setting.html', (req, res) => {
+  return res.sendFile(path.join(__dirname, '../public', 'setting', 'setting.html'));
 });
 
 // Simple SSE client registry keyed by token
@@ -62,7 +73,30 @@ app.post('/scrape', async (req, res) => {
       args.push(keywords);
     }
 
-    const child = spawn('node', args, { cwd: path.join(__dirname, '..') });
+    // Prefer running compiled dist if available, otherwise run the TypeScript source via ts-node
+    const projectRoot = path.join(__dirname, '..');
+    const compiledScraper = path.join(__dirname, '../dist/backend/scrape_jobsdb.js');
+    const sourceScraper = path.join(__dirname, '../src/backend/scrape_jobsdb.ts');
+
+    let child;
+    if (fs.existsSync(compiledScraper)) {
+      // use compiled JS
+      const jsArgs = [compiledScraper, 'scrape', '-r', region, '-n', String(pagesArg), '-s', resultsDir];
+      if (keywords && keywords.trim().length > 0) {
+        jsArgs.push('--keywords', keywords);
+      }
+      child = spawn('node', jsArgs, { cwd: projectRoot });
+    } else if (fs.existsSync(sourceScraper)) {
+      // run via ts-node so dev doesn't require `npm run build`
+      const tsArgs = ['-r', 'ts-node/register', sourceScraper, 'scrape', '-r', region, '-n', String(pagesArg), '-s', resultsDir];
+      if (keywords && keywords.trim().length > 0) {
+        tsArgs.push('--keywords', keywords);
+      }
+      child = spawn(process.execPath, tsArgs, { cwd: projectRoot, env: process.env });
+    } else {
+      // fallback to original behavior (may error)
+      child = spawn('node', args, { cwd: projectRoot });
+    }
 
     let stdout = '';
     let stderr = '';
@@ -170,6 +204,23 @@ app.get('/results/:file', (req, res) => {
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     return res.status(500).send(errorMessage);
+  }
+});
+
+// Return a JSON array of available result files (sorted by mtime desc)
+app.get('/results', (req, res) => {
+  try {
+    const resultsDir = path.join(__dirname, '../jobsdb_scrape_results');
+    if (!fs.existsSync(resultsDir)) return res.json([]);
+    const files = fs.readdirSync(resultsDir)
+      .filter(f => f.endsWith('.json'))
+      .map(f => ({ f, m: fs.statSync(path.join(resultsDir, f)).mtime.getTime() }))
+      .sort((a, b) => b.m - a.m)
+      .map(x => x.f);
+    return res.json(files);
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    return res.status(500).json({ error: errorMessage });
   }
 });
 
