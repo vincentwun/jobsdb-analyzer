@@ -273,13 +273,18 @@ button:disabled {
   filter: brightness(0.95);
 }
 
-.btn-muted {
+.btn-muted,
+.setting-actions button {
   background: #fff;
   color: var(--muted);
   border: 1px solid rgba(15, 23, 42, 0.06);
   padding: 10px 12px;
   border-radius: 8px;
   cursor: pointer;
+}
+
+.setting-actions button {
+  padding: 8px 12px;
 }
 
 .btn-muted:hover {
@@ -366,12 +371,20 @@ button:disabled {
   color: var(--muted);
 }
 
-.json-view {
+/* Hidden elements */
+.json-view,
+.hidden {
   display: none;
 }
 
 .hidden {
   display: none !important;
+}
+
+/* Spacing utilities */
+.file-selection,
+.results-area {
+  margin-top: 18px;
 }
 
 /* Job Summary Cards */
@@ -428,7 +441,9 @@ button:disabled {
 /* ====================================
    File Selection
    ==================================== */
-.file-selection {
+/* Spacing utilities */
+.file-selection,
+.results-area {
   margin-top: 18px;
 }
 
@@ -450,7 +465,6 @@ button:disabled {
 }
 
 .file-info {
-  display: none;
   padding: 10px;
   background: #f0fdf4;
   border: 1px solid #86efac;
@@ -471,12 +485,23 @@ button:disabled {
   margin-top: 8px;
 }
 
-.analysis-panel {
-  margin-top: 18px;
+/* Card panels */
+.analysis-panel,
+.panel-card {
   padding: 16px;
   background: #f9fafb;
   border-radius: 8px;
   border: 1px solid #e5e7eb;
+}
+
+.analysis-panel {
+  margin-top: 18px;
+}
+
+.panel-card {
+  background: #fff;
+  padding: 18px;
+  margin-bottom: 14px;
 }
 
 .analysis-panel h3 {
@@ -502,7 +527,6 @@ button:disabled {
 
 .status-area {
   margin-top: 14px;
-  display: none;
 }
 
 .status-message {
@@ -534,11 +558,6 @@ button:disabled {
   border-left: 4px solid #ef4444;
 }
 
-.results-area {
-  margin-top: 18px;
-  display: none;
-}
-
 .results-title {
   font-size: 18px;
   font-weight: 700;
@@ -549,14 +568,6 @@ button:disabled {
 .results-summary {
   color: var(--muted);
   margin-bottom: 12px;
-}
-
-.panel-card {
-  background: #fff;
-  padding: 18px;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  margin-bottom: 14px;
 }
 
 .table-card {
@@ -632,14 +643,6 @@ table#dataTable td.text-right {
   margin-top: 12px;
 }
 
-.setting-actions button {
-  background: #fff;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
 .setting-actions button:focus {
   outline: 3px solid rgba(79, 70, 229, 0.12);
 }
@@ -647,7 +650,6 @@ table#dataTable td.text-right {
 .save-status {
   font-size: 14px;
   color: #065f46;
-  display: none;
   align-self: center;
 }
 

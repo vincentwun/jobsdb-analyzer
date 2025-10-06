@@ -57,11 +57,11 @@ app.get('/scrape/stream', (req, res) => {
 app.post('/scrape', async (req, res) => {
   try {
     const { region, pagesMode, numPages, keywords, token } = req.body;
-    
+
     // Determine pages arg
     let pagesArg = numPages;
     if (pagesMode === 'max') pagesArg = 'all';
-    
+
     // Ensure output dir
     const resultsDir = path.join(__dirname, '../jobsdb_scrape_results');
     if (!fs.existsSync(resultsDir)) fs.mkdirSync(resultsDir, { recursive: true });
@@ -142,7 +142,7 @@ app.post('/scrape', async (req, res) => {
         // ignore parse errors
       }
     });
-    
+
     child.stderr.on('data', (data) => {
       stderr += data.toString();
     });
@@ -161,18 +161,18 @@ app.post('/scrape', async (req, res) => {
         }
         return res.status(500).json({ error: 'Scraper failed', code, stderr });
       }
-      
+
       // Find latest result file in resultsDir
       const files = fs.readdirSync(resultsDir)
         .filter(f => f.endsWith('.json'))
         .map(f => ({ f, m: fs.statSync(path.join(resultsDir, f)).mtime.getTime() }))
         .sort((a, b) => b.m - a.m);
-        
+
       if (files.length === 0) return res.status(500).json({ error: 'No result file produced' });
-      
+
       const latest = files[0].f;
       const content = fs.readFileSync(path.join(resultsDir, latest), 'utf8');
-      
+
       // notify SSE client of completion
       if (token && sseClients.has(token)) {
         const client = sseClients.get(token);

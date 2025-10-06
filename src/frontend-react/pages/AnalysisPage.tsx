@@ -1,8 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Chart, ChartConfiguration, registerables } from 'chart.js';
 import { useResultFiles } from '../hooks/useResultFiles';
 import { extractJobContents, processLocationData, JobContentExtract } from '../utils/jobParser';
 import { FileSelector } from '../components/FileSelector';
 import { StatusMessage } from '../components/StatusMessage';
+
+// Register Chart.js components
+Chart.register(...registerables);
 
 interface AnalysisDataPoint {
   label: string;
@@ -90,9 +94,9 @@ export const AnalysisPage: React.FC = () => {
   const [analysisResult, setAnalysisResult] = useState<GeminiAnalysisResponse | null>(null);
   const [jobCount, setJobCount] = useState<number>(0);
 
-  const mainChartRef = useRef<any>(null);
-  const experienceChartRef = useRef<any>(null);
-  const locationChartRef = useRef<any>(null);
+  const mainChartRef = useRef<Chart | null>(null);
+  const experienceChartRef = useRef<Chart | null>(null);
+  const locationChartRef = useRef<Chart | null>(null);
   const mainCanvasRef = useRef<HTMLCanvasElement>(null);
   const experienceCanvasRef = useRef<HTMLCanvasElement>(null);
   const locationCanvasRef = useRef<HTMLCanvasElement>(null);
@@ -238,7 +242,7 @@ export const AnalysisPage: React.FC = () => {
     const ctx = mainCanvasRef.current.getContext('2d');
     if (!ctx) return;
 
-    mainChartRef.current = new (window as any).Chart(ctx, {
+    mainChartRef.current = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
@@ -372,7 +376,7 @@ export const AnalysisPage: React.FC = () => {
       return `hsl(142, 70%, ${lightness}%)`;
     });
 
-    experienceChartRef.current = new (window as any).Chart(ctx, {
+    experienceChartRef.current = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
@@ -448,7 +452,7 @@ export const AnalysisPage: React.FC = () => {
       return `hsl(217, 70%, ${lightness}%)`;
     });
 
-    locationChartRef.current = new (window as any).Chart(ctx, {
+    locationChartRef.current = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,

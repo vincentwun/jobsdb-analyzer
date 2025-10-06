@@ -65,7 +65,7 @@ export const SettingPage: React.FC = () => {
             Save
           </button>
           {saveStatus && (
-            <div id="saveStatus" className="save-status" style={{ display: 'block' }}>
+            <div id="saveStatus" className="save-status">
               {saveStatus}
             </div>
           )}
