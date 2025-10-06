@@ -86,6 +86,45 @@ export const locationRunner: AnalysisRunner = async (apiKey, model, preset, jobD
   };
 };
 
+// Local runner for education requirements analysis
+export const educationRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
+  if (preset !== 'education') {
+    throw new Error(`Education runner only supports 'education' preset`);
+  }
+
+  const educationData: { [key: string]: number } = {};
+  
+  // Education level patterns (English and Chinese)
+  const educationPatterns = [
+    { pattern: /\b(?:phd|ph\.d\.|doctorate|doctoral|博士)\b/gi, label: 'PhD / Doctorate' },
+    { pattern: /\b(?:master|master'?s|硕士|碩士)\b/gi, label: "Master's Degree" },
+    { pattern: /\b(?:bachelor|bachelor'?s|degree|学士|學士|本科)\b/gi, label: "Bachelor's Degree" },
+    { pattern: /\b(?:diploma|associate|高级文凭|高級文憑|副学士|副學士)\b/gi, label: 'Diploma / Associate' },
+    { pattern: /\b(?:certificate|certification|证书|證書)\b/gi, label: 'Certificate' },
+    { pattern: /\b(?:high school|secondary|中学|中學|高中)\b/gi, label: 'High School' }
+  ];
+
+  jobContents.forEach((job: JobContentExtract) => {
+    const text = `${job.abstract} ${job.content}`;
+    
+    educationPatterns.forEach(({ pattern, label }) => {
+      const matches = text.match(pattern);
+      if (matches && matches.length > 0) {
+        educationData[label] = (educationData[label] || 0) + 1;
+      }
+    });
+  });
+
+  const data_points = Object.entries(educationData)
+    .map(([label, value]) => ({ label, value, category: 'Education' }))
+    .sort((a, b) => b.value - a.value);
+
+  return {
+    analysis_summary: `Education requirements distribution across ${jobContents.length} jobs`,
+    data_points
+  };
+};
+
 // Combined runner that dispatches to appropriate runner based on preset
 export const analysisRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
   const useLangChain = getUseLangChain();
@@ -111,6 +150,8 @@ export const analysisRunner: AnalysisRunner = async (apiKey, model, preset, jobC
       return experienceRunner(apiKey, model, preset, jobContents);
     case 'location':
       return locationRunner(apiKey, model, preset, jobContents);
+    case 'education':
+      return educationRunner(apiKey, model, preset, jobContents);
     default:
       throw new Error(`Unknown preset: ${preset}`);
   }

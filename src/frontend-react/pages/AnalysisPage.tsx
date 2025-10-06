@@ -22,7 +22,8 @@ const ANALYSIS_SECTIONS: Array<{
   { key: 'skills', title: 'Most Required Skills', chartType: 'bar', parallel: true },
   { key: 'certs', title: 'Most Required Certifications', chartType: 'bar', parallel: true },
   { key: 'experience', title: 'Required Experience Years', chartType: 'bar', parallel: false },
-  { key: 'location', title: 'Location Distribution', chartType: 'bar', parallel: false }
+  { key: 'location', title: 'Location Distribution', chartType: 'bar', parallel: false },
+  { key: 'education', title: 'Education Requirements', chartType: 'bar', parallel: false }
 ];
 
 export const AnalysisPage: React.FC = () => {

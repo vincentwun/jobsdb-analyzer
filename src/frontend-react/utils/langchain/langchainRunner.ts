@@ -1,4 +1,4 @@
-import { AnalysisResult, AnalysisRunner } from '../analysisTypes';
+import { AnalysisResult, AnalysisRunner, AnalysisPresetKey } from '../analysisTypes';
 import { coordinateAnalysis } from './langchainCoordinator';
 import { processChunk, WorkerResult } from './langchainWorker';
 import { aggregateResults } from './langchainAggregator';
@@ -7,7 +7,7 @@ import { aggregateResults } from './langchainAggregator';
 export const langchainRunner: AnalysisRunner = async (
   apiKey: string,
   model: string,
-  preset: 'skills' | 'certs' | 'experience' | 'location',
+  preset: AnalysisPresetKey,
   data: string[] | any
 ): Promise<AnalysisResult> => {
   // Only support skills and certs for now (AI-based analysis)

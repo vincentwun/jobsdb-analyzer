@@ -11,7 +11,7 @@ export interface AnalysisResult {
   data_points: DataPoint[];
 }
 
-export type AnalysisPresetKey = 'skills' | 'certs' | 'experience' | 'location';
+export type AnalysisPresetKey = 'skills' | 'certs' | 'experience' | 'location' | 'education';
 
 // Runner interface for executing analysis
 export type AnalysisRunner = (
