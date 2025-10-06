@@ -93,6 +93,11 @@ body {
   gap: 18px
 }
 
+/* spacing helper for grid top gap used in index.html */
+.grid-gap-top {
+  margin-top: 12px;
+}
+
 /* Home form */
 label {
   display: block;
@@ -111,37 +116,30 @@ label {
   align-items: center
 }
 
-input[type="text"],
-input[type="number"],
-select {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0.7));
-  font-size: 15px
-}
+input[type="text"], input[type="number"], select { width:100%; padding:12px; border-radius:12px; border:1px solid rgba(15,23,42,0.06); background:linear-gradient(180deg, rgba(255,255,255,0.85), rgba(255,255,255,0.7)); font-size:15px }
 
 /* Keywords input specific styling */
-#keywords {
-  font-size: 16px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  box-shadow: inset 0 -1px 0 rgba(16, 24, 40, 0.02);
-  background: linear-gradient(180deg, #fff, #fbfdff);
-  transition: box-shadow .12s, border-color .12s;
+#keywords { font-size:16px; padding:14px 16px; border-radius:12px; border:1px solid rgba(15,23,42,0.08); box-shadow:inset 0 -1px 0 rgba(16,24,40,0.02); background:linear-gradient(180deg,#fff,#fbfdff); transition:box-shadow .12s, border-color .12s }
+#keywords::placeholder { color: rgba(15,23,42,0.35); font-style: italic }
+#keywords:focus { outline:none; border-color: rgba(14,165,164,0.9); box-shadow: 0 8px 28px rgba(14,165,164,0.06) }
+
+.num-pages-input { width:120px }
+
+.preview-label {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 8px;
 }
 
-#keywords::placeholder {
-  color: rgba(15, 23, 42, 0.35);
-  font-style: italic
-}
+#progressWrap, .progress-wrap { display:block; margin-bottom:8px }
+.progress-label { font-size:12px; color:var(--muted); margin-bottom:6px }
+.progress-track { background:#eef2ff; border-radius:8px; padding:4px }
+.progress-bar { height:12px; background:linear-gradient(90deg,#4f46e5,#7c3aed); border-radius:6px; transition:width .2s }
+.progress-percent { font-size:12px; color:var(--muted); margin-top:6px }
 
-#keywords:focus {
-  outline: none;
-  border-color: rgba(14, 165, 164, 0.9);
-  box-shadow: 0 8px 28px rgba(14, 165, 164, 0.06)
+.result-log {
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .keyword-chips {
@@ -159,27 +157,13 @@ select {
 }
 
 #numPages {
-  -moz-appearance: textfield;
-  /* Firefox */
+  appearance: textfield;
+  -moz-appearance: textfield; /* Firefox */
 }
 
-.actions {
-  display: flex;
-  gap: 8px;
-  justify-content: flex-end
-}
+.actions { display:flex; gap:8px; justify-content:flex-end }
 
-.primary,
-.btn-accent {
-  background: var(--accent);
-  color: white;
-  padding: 10px 16px;
-  border-radius: 12px;
-  border: 0;
-  cursor: pointer;
-  font-weight: 700;
-  box-shadow: 0 8px 28px rgba(14, 165, 164, 0.12)
-}
+.primary, .btn-accent { background:var(--accent); color:white; padding:10px 16px; border-radius:12px; border:0; cursor:pointer; font-weight:700; box-shadow:0 8px 28px rgba(14,165,164,0.12) }
 
 pre {
   background: #f7f7fb;
@@ -190,11 +174,7 @@ pre {
 }
 
 /* Modernized search card */
-.panel {
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-}
+.panel { padding:24px; border-radius:16px; box-shadow:0 10px 30px rgba(15,23,42,0.08) }
 
 .panel h2 {
   margin: 0 0 12px 0;
@@ -203,63 +183,18 @@ pre {
 }
 
 /* pills for radio options */
-.pill {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(15, 23, 42, 0.03);
-  padding: 6px 10px;
-  border-radius: 999px;
-  cursor: pointer;
-  margin-right: 6px;
-  transition: background .18s, transform .08s;
-  user-select: none
-}
-
-.pill input {
-  display: none
-}
-
-.pill span {
-  font-weight: 700;
-  color: var(--muted);
-  font-size: 14px
-}
-
-.pill:hover {
-  transform: translateY(-1px)
-}
-
-.pill input:checked+span {
-  color: var(--accent);
-}
+.pill { display:inline-flex; align-items:center; background:rgba(15,23,42,0.03); padding:6px 10px; border-radius:999px; cursor:pointer; margin-right:6px; transition:background .18s, transform .08s; user-select:none }
+.pill input { display:none }
+.pill span { font-weight:700; color:var(--muted); font-size:14px }
+.pill:hover { transform:translateY(-1px) }
+.pill input:checked + span { color:var(--accent) }
 
 /* input focus styles */
-input[type="text"],
-input[type="number"],
-select {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.6));
-  border: 1px solid rgba(15, 23, 42, 0.06);
-  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.04);
-  transition: box-shadow .12s, border-color .12s
-}
+input[type="text"], input[type="number"], select { background:linear-gradient(180deg, rgba(255,255,255,0.8), rgba(255,255,255,0.6)); border:1px solid rgba(15,23,42,0.06); box-shadow:0 6px 18px rgba(16,24,40,0.04); transition:box-shadow .12s, border-color .12s }
+input:focus { outline:none; border-color:rgba(14,165,164,0.8); box-shadow:0 8px 24px rgba(14,165,164,0.06) }
 
-input:focus {
-  outline: none;
-  border-color: rgba(14, 165, 164, 0.8);
-  box-shadow: 0 8px 24px rgba(14, 165, 164, 0.06)
-}
-
-.actions {
-  display: flex;
-  justify-content: flex-end
-}
-
-.actions .primary {
-  padding: 10px 16px;
-  font-weight: 700;
-  letter-spacing: .2px;
-  box-shadow: 0 6px 22px rgba(79, 70, 229, 0.12)
-}
+.actions { display:flex; justify-content:flex-end }
+.actions .primary { padding:10px 16px; font-weight:700; letter-spacing:.2px; box-shadow:0 6px 22px rgba(79,70,229,0.12) }
 
 /* Helper button classes used by various pages */
 .btn-accent {

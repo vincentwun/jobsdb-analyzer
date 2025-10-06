@@ -1,21 +1,13 @@
 /* Result page specific styles - inherits sidebar from index.css */
-#meta {
-  margin-bottom: 12px;
-  color: #333;
-  font-weight: 600;
-  font-size: 14px
-}
+#meta { margin-bottom:12px; color:#333; font-weight:600; font-size:14px }
+.result-wrapper { margin-top:12px }
+.readable-view { margin-top:12px; font-size:14px; color:var(--muted) }
+.json-view { display:none }
 
-pre {
-  white-space: pre-wrap;
-  background: #f7f7f7;
-  padding: 12px;
-  border-radius: 6px;
-  overflow: auto;
-  max-height: calc(100vh - 200px);
-  font-size: 13px;
-  line-height: 1.5
-}
+pre { white-space:pre-wrap; background:#f7f7f7; padding:12px; border-radius:6px; overflow:auto; max-height:calc(100vh - 200px); font-size:13px; line-height:1.5 }
+
+/* Utility */
+.hidden { display:none !important }
 
 /* Optional: nicer scrollbar on supported browsers */
 pre::-webkit-scrollbar {
@@ -32,50 +24,19 @@ pre::-webkit-scrollbar-track {
   background: transparent
 }
 
-/* Job summary list styles */
-.job-summary-list {
-  padding-left: 16px;
-  margin: 0;
-}
+.job-summary-list { padding-left:16px; margin:0 }
+.job-summary { margin-bottom:12px; padding:10px; border-radius:8px; background:var(--card); box-shadow:0 1px 0 rgba(0,0,0,0.04) }
+.job-row { font-size:14px; margin-bottom:6px }
+.job-meta { color:var(--muted); font-size:13px; margin-bottom:6px }
+.skill { display:inline-block; background:var(--accent); color:#fff; padding:2px 6px; border-radius:4px; margin:0 6px 6px 0; font-size:12px; font-weight:600 }
+.skill.muted { background:#ddd; color:#666 }
+.job-snippet { color:#444; font-size:13px; margin-top:6px }
 
-.job-summary {
-  margin-bottom: 12px;
-  padding: 10px;
-  border-radius: 8px;
-  background: var(--card);
-  box-shadow: 0 1px 0 rgba(0,0,0,0.04);
-}
+/* Compact file-selection spacing specific to Result page */
+.file-selection { margin-top:10px }
+.file-selection-row { gap:10px }
+.file-info { display:none; padding:8px 10px; background:#f0fdf4; border:1px solid #86efac; border-radius:6px; margin-top:6px }
+.file-info-line { font-size:13px; color:#166534 }
 
-.job-row {
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.job-meta {
-  color: var(--muted);
-  font-size: 13px;
-  margin-bottom: 6px;
-}
-
-.skill {
-  display: inline-block;
-  background: var(--accent);
-  color: #fff;
-  padding: 2px 6px;
-  border-radius: 4px;
-  margin-right: 4px;
-  margin-bottom: 4px;
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.skill.muted {
-  background: #ddd;
-  color: #666;
-}
-
-.job-snippet {
-  color: #444;
-  font-size: 13px;
-  margin-top: 6px;
-}
+/* optional icon spacing when label contains Font Awesome icon */
+.file-selection-label i { margin-right:8px; color:var(--muted) }

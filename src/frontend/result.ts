@@ -79,9 +79,11 @@ async function load(): Promise<void> {
 
   const jsonView = document.getElementById('jsonView');
   const meta = document.getElementById('meta');
-  const fileTree = document.getElementById('fileTree');
+  const fileSelector = document.getElementById('fileSelector') as HTMLSelectElement | null;
+  const currentFileName = document.getElementById('currentFileName');
+  const jobCountEl = document.getElementById('jobCount');
 
-  if (!jsonView || !meta || !fileTree) {
+  if (!jsonView || !meta || !fileSelector || !currentFileName || !jobCountEl) {
     console.error('Required elements not found');
     return;
   }
@@ -94,82 +96,39 @@ async function load(): Promise<void> {
       throw new Error('Failed to fetch result list');
     }
     files = await listRes.json();
-    if (files.length === 0) {
-      fileTree.innerHTML = '<div>(no results)</div>';
-      const readable = document.getElementById('readableView');
-      if(readable) readable.innerText = 'No result files available. Please run a scrape first.';
-      meta!.innerText = '';
-      return;
-    }
-
-    // Build a simple grouped tree by region prefix (jobsdb-<region>-...)
-    const groups: Record<string, string[]> = {};
+    fileSelector.innerHTML = '<option value="">-- Select a result file --</option>';
     for (const f of files) {
-      const parts = f.split('-');
-      const region = parts.length >= 2 ? parts[1] : 'other';
-      if (!groups[region]) groups[region] = [];
-      groups[region].push(f);
-    }
-
-    // render tree
-    fileTree.innerHTML = '';
-    for (const [region, flist] of Object.entries(groups)) {
-      const section = document.createElement('div');
-      const header = document.createElement('div');
-      header.style.cursor = 'pointer';
-      header.style.fontWeight = '600';
-      header.style.margin = '6px 0';
-      header.innerText = `${region} (${flist.length})`;
-      const list = document.createElement('ul');
-      list.style.listStyle = 'none';
-      list.style.paddingLeft = '12px';
-      list.style.marginTop = '4px';
-      list.style.display = 'none';
-      for (const f of flist) {
-        const li = document.createElement('li');
-        const a = document.createElement('a');
-        a.href = '#';
-        a.innerText = f;
-        a.style.display = 'inline-block';
-        a.style.padding = '4px 6px';
-        a.style.borderRadius = '4px';
-        a.onclick = (ev) => {
-          ev.preventDefault();
-          loadFile(encodeURIComponent(f));
-        };
-        li.appendChild(a);
-        list.appendChild(li);
-      }
-      header.onclick = () => {
-        list.style.display = list.style.display === 'none' ? 'block' : 'none';
-      };
-      section.appendChild(header);
-      section.appendChild(list);
-      fileTree.appendChild(section);
+      const opt = document.createElement('option');
+      opt.value = f;
+      opt.textContent = f;
+      fileSelector.appendChild(opt);
     }
   } catch (e) {
     jsonView.innerText = 'Failed to load file list: ' + (e instanceof Error ? e.message : String(e));
     return;
   }
 
-  async function loadFile(encodedFile: string | null) {
-    if (!encodedFile) {
+  async function loadFile(selectedFile: string | null) {
+    if (!selectedFile) {
       jsonView!.innerText = 'No file specified';
       meta!.innerText = '';
+  if (currentFileName) currentFileName.textContent = '';
+  if (jobCountEl) jobCountEl.textContent = '';
       return;
     }
     try {
       const readable = document.getElementById('readableView');
       if (readable) readable.innerText = 'Loading...';
 
-      const res = await fetch(`/results/${encodedFile}`);
+      const res = await fetch(`/results/${encodeURIComponent(selectedFile)}`);
       if (!res.ok) {
         jsonView!.innerText = 'Failed to load result';
-        meta!.innerText = decodeURIComponent(encodedFile);
+        meta!.innerText = selectedFile;
         return;
       }
       const text = await res.text();
-      meta!.innerText = decodeURIComponent(encodedFile);
+      meta!.innerText = selectedFile;
+  if (currentFileName) currentFileName.textContent = selectedFile;
 
       // Try parse JSON and render human-readable output
       let parsed: any = null;
@@ -185,7 +144,8 @@ async function load(): Promise<void> {
       }
 
       const summaries = parseJobsFromJson(parsed);
-      // reuse readable variable
+  if (jobCountEl) jobCountEl.textContent = String(summaries.length);
+
       const readable2 = document.getElementById('readableView');
       if (!summaries || summaries.length === 0) {
         if (readable2) readable2.innerText = '(no jobs found in this file)';
@@ -204,14 +164,20 @@ async function load(): Promise<void> {
       }
     } catch (e) {
       jsonView!.innerText = 'Failed to load result: ' + (e instanceof Error ? e.message : String(e));
-      meta!.innerText = decodeURIComponent(encodedFile);
+      meta!.innerText = selectedFile ?? '';
     }
   }
 
-  // initial load: if initialFile provided use it, otherwise do not load any file
+  // wire change event
+  fileSelector.addEventListener('change', () => {
+    const val = fileSelector.value || null;
+    loadFile(val);
+  });
+
+  // initial load: if initialFile provided use it
   if (initialFile) {
-    const initialEncoded = encodeURIComponent(initialFile);
-    await loadFile(initialEncoded);
+    fileSelector.value = initialFile;
+    await loadFile(initialFile);
   }
 }
 

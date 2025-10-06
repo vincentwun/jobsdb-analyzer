@@ -10,6 +10,8 @@
   <link rel="stylesheet" href="/index/index.css">
   <link rel="stylesheet" href="/setting/setting.css">
   <link rel="stylesheet" href="/result/result.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -19,11 +21,22 @@
     <main class="main">
       <section class="panel">
         <h2>Scrape Results</h2>
-        <div style="margin-top:12px">
-          <div id="fileTree" style="margin-bottom:8px"></div>
-          <div id="meta" style="margin-top:12px"></div>
-          <div id="readableView">Select a file from the list to view a human-readable summary.</div>
-          <pre id="jsonView" style="display:none">Loading...</pre>
+        <div class="result-wrapper">
+          <div class="file-selection">
+            <div class="file-selection-row">
+              <label class="file-selection-label"><i class="fas fa-folder-open" aria-hidden="true"></i>Select source file:</label>
+              <select id="fileSelector" class="file-select">
+                <option value="">-- Loading... --</option>
+              </select>
+            </div>
+            <div id="fileInfo" class="file-info">
+              <div class="file-info-line"><strong>Loaded:</strong> <span id="currentFileName"></span></div>
+              <div class="file-info-line"><strong>Jobs:</strong> <span id="jobCount"></span></div>
+            </div>
+          </div>
+          <div id="meta" class="meta"></div>
+          <div id="readableView" class="readable-view">Select a file from the list to view a human-readable summary.</div>
+          <pre id="jsonView" class="json-view hidden">Loading...</pre>
         </div>
       </section>
     </main>

@@ -10,7 +10,10 @@
   <link rel="stylesheet" href="/index/index.css">
   <link rel="stylesheet" href="/setting/setting.css">
   <link rel="stylesheet" href="/analysis/analysis.css">
-  <!-- Tailwind removed: using local CSS theme -->
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js for data visualization -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 
 <body>
@@ -19,83 +22,73 @@
 
     <main class="main">
       <section class="panel">
-        <h2>AI Analysis</h2>
-        <p style="color:var(--muted);margin-top:8px">Use Gemini AI to analyze job descriptions and extract skills,
-          experience and qualifications</p>
+  <h2><i class="fas fa-chart-line" aria-hidden="true" style="margin-right:8px"></i>AI Analysis</h2>
+  <p class="muted-note">Use Gemini AI to analyze job descriptions and extract structured insights</p>
 
         <!-- File Selection -->
-        <div style="margin-top:24px">
-          <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px">
-            <label style="font-weight:600;min-width:120px">Select source file:</label>
-            <select id="fileSelector" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+        <div class="file-selection">
+          <div class="file-selection-row">
+            <label class="file-selection-label">Select source file:</label>
+            <select id="fileSelector" class="file-select">
               <option value="">-- Loading... --</option>
             </select>
-            <button id="loadFileBtn"
-              style="padding:8px 16px;background:var(--accent);color:white;border:none;border-radius:6px;cursor:pointer;font-weight:600">
-              Load File
-            </button>
           </div>
 
           <!-- File Info -->
-          <div id="fileInfo"
-            style="display:none;padding:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;margin-bottom:16px">
-            <div style="font-size:13px;color:#166534">
-              <strong>Loaded:</strong> <span id="currentFileName"></span>
-            </div>
-            <div style="font-size:13px;color:#166534;margin-top:4px">
-              <strong>Jobs:</strong> <span id="jobCount"></span>
-            </div>
+          <div id="fileInfo" class="file-info">
+            <div class="file-info-line"><strong>Loaded:</strong> <span id="currentFileName"></span></div>
+            <div class="file-info-line"><strong>Jobs:</strong> <span id="jobCount"></span></div>
           </div>
         </div>
 
         <!-- Analysis Controls -->
-        <div style="margin-top:24px;padding:16px;background:#f9fafb;border-radius:8px;border:1px solid #e5e7eb">
-          <h3 style="font-size:16px;font-weight:600;margin-bottom:12px">Analysis Options</h3>
+        <div class="analysis-panel">
+          <h3>Analysis Options</h3>
 
-          <div style="margin-bottom:12px">
-            <label style="display:block;font-weight:500;margin-bottom:6px">Analysis prompt:</label>
-            <textarea id="analysisPrompt" rows="4"
-              style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:14px"
-              placeholder="Please analyze these job descriptions, extract the most common skills, experience and qualifications. Group by category and provide counts.">Please analyze these job descriptions, extract the most common skills, experience and qualifications. Group by category and provide counts.</textarea>
+          <div class="form-group">
+            <label>Preset Analysis:</label>
+            <select id="presetSelector" class="form-select">
+              <option value="skills">Analyze Most Common Skills (Python, Docker, K8s, AWS, etc.)</option>
+              <option value="certs">Analyze Required Certifications (AWS SAA, Azure AZ-104, etc.)</option>
+            </select>
           </div>
 
-          <div style="display:flex;gap:12px">
-            <button id="analyzeBtn" disabled class="btn-accent" style="flex:1;padding:12px;font-size:15px">🤖 Start AI
-              Analysis</button>
-            <button id="clearBtn" class="btn-muted" style="padding:12px 24px">Clear Results</button>
+          <div class="analysis-actions">
+            <button id="analyzeBtn" disabled class="btn-accent">Start Analysis</button>
           </div>
         </div>
 
         <!-- Status -->
-        <div id="statusArea" style="margin-top:16px;display:none">
-          <div id="statusMessage" style="padding:12px;border-radius:6px;font-size:14px"></div>
+        <div id="statusArea" class="status-area">
+          <div id="statusMessage" class="status-message"></div>
         </div>
 
         <!-- Results -->
-        <div id="resultsArea" style="margin-top:24px;display:none">
-          <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;color:#1f2937">Analysis Results</h3>
-          <div id="resultsContent"
-            style="padding:20px;background:white;border-radius:8px;border:1px solid #e5e7eb;white-space:pre-wrap;font-family:monospace;font-size:13px;line-height:1.6;max-height:600px;overflow-y:auto">
+        <div id="resultsArea" class="results-area">
+          <h3 id="resultsTitle" class="results-title">Analysis Results</h3>
+          <p id="resultsSummary" class="results-summary"></p>
+          
+          <!-- Chart Container -->
+          <div class="card panel-card">
+            <canvas id="analysisChart"></canvas>
+          </div>
+
+          <!-- Data Table -->
+          <div class="card panel-card table-card">
+            <h4 class="table-title">Detailed Statistics</h4>
+            <table id="dataTable">
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th>Category</th>
+                  <th class="text-right">Count</th>
+                  <th class="text-right">Percentage</th>
+                </tr>
+              </thead>
+              <tbody id="dataTableBody"></tbody>
+            </table>
           </div>
         </div>
-
-        <!-- Debug Info (collapsible) -->
-        <details style="margin-top:24px">
-          <summary style="cursor:pointer;font-weight:600;padding:8px;background:#f3f4f6;border-radius:6px">
-            🔍 Debug Info
-          </summary>
-          <div style="margin-top:12px;padding:16px;background:#fef3c7;border-radius:6px;border:1px solid #fbbf24">
-            <div style="font-size:13px;margin-bottom:8px">
-              <strong>Extracted items:</strong> <span id="debugExtractCount">0</span>
-            </div>
-            <div style="font-size:13px;margin-bottom:8px">
-              <strong>Total chars:</strong> <span id="debugCharCount">0</span>
-            </div>
-            <div style="font-size:13px">
-              <strong>API Key status:</strong> <span id="debugApiKeyStatus">Not set</span>
-            </div>
-          </div>
-        </details>
       </section>
     </main>
   </div>

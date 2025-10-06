@@ -9,9 +9,8 @@
     onload="this.onload=null;this.rel='stylesheet'">
   <link rel="stylesheet" href="/index/index.css">
   <link rel="stylesheet" href="/setting/setting.css">
-  <style>
-    /* small override so preload font works even without external CSS */
-  </style>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -21,7 +20,7 @@
     <main class="main">
       <section class="panel">
         <h2>Search Filter</h2>
-        <div class="grid" style="margin-top:12px">
+  <div class="grid grid-gap-top">
           <div>
             <form id="scrapeForm">
               <div class="field">
@@ -49,7 +48,7 @@
                     <input type="radio" name="pagesMode" value="custom" checked />
                     <span>Custom</span>
                   </label>
-                  <input id="numPages" type="number" name="numPages" placeholder="pages" min="1" style="width:120px"
+                  <input id="numPages" type="number" name="numPages" placeholder="pages" min="1" class="num-pages-input"
                     disabled />
                 </div>
               </div>
@@ -66,19 +65,17 @@
           </div>
 
           <aside>
-            <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Result preview</div>
+            <div class="preview-label">Result preview</div>
             <div id="resultBox">
-              <div id="progressWrap" style="display:block;margin-bottom:8px">
-                <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Progress</div>
-                <div style="background:#eef2ff;border-radius:8px;padding:4px;">
-                  <div id="progressBar"
-                    style="width:0%;height:12px;background:linear-gradient(90deg,#4f46e5,#7c3aed);border-radius:6px">
-                  </div>
+              <div id="progressWrap" class="progress-wrap">
+                <div class="progress-label">Progress</div>
+                <div class="progress-track">
+                  <div id="progressBar" class="progress-bar"></div>
                 </div>
-                <div id="progressPercent" style="font-size:12px;color:var(--muted);margin-top:6px">0%</div>
+                <div id="progressPercent" class="progress-percent">0%</div>
               </div>
-              <div id="resultLog" style="font-size:13px;color:var(--muted)"><em>Submit to run scraper; results will be
-                  shown here when complete.</em></div>
+        <div id="resultLog" class="result-log"><em>Submit to run scraper; results will be
+          shown here when complete.</em></div>
             </div>
           </aside>
         </div>

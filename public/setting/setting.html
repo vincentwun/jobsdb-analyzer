@@ -9,6 +9,8 @@
     onload="this.onload=null;this.rel='stylesheet'">
   <link rel="stylesheet" href="/index/index.css">
   <link rel="stylesheet" href="/setting/setting.css">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 
 <body>
@@ -18,18 +20,17 @@
     <main class="main">
       <section class="panel">
         <h2>Settings</h2>
-        <p style="color:var(--muted);margin-top:8px">Enter your Gemini API Key (stored locally in localStorage)</p>
+  <p class="muted-note">Enter your Gemini API Key (stored locally in localStorage)</p>
 
-        <div style="margin-top:24px;max-width:600px">
+        <div class="settings-wrapper">
           <div class="setting-field">
-            <label for="gemKey" style="display:block;font-weight:600;margin-bottom:8px">Gemini API Key</label>
-            <input id="gemKey" type="password" class="setting-input" placeholder="Enter Gemini API Key"
-              style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-family:inherit;font-size:14px" />
+            <label for="gemKey" class="setting-label">Gemini API Key</label>
+            <input id="gemKey" type="password" class="setting-input" placeholder="Enter Gemini API Key" />
           </div>
 
-          <div style="margin-top:16px;display:flex;gap:12px;align-items:center">
-            <button id="saveSettings" class="btn-accent" style="padding:10px 24px;font-size:14px">💾 Save</button>
-            <div id="saveStatus" style="font-size:14px;color:#065f46;display:none">✓ Saved</div>
+          <div class="setting-actions">
+            <button id="saveSettings" class="btn-accent"><i class="fas fa-floppy-disk" aria-hidden="true" style="margin-right:6px"></i>Save</button>
+            <div id="saveStatus" class="save-status">✓ Saved</div>
           </div>
         </div>
       </section>
