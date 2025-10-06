@@ -2,6 +2,7 @@
 
 ## 1. Map-Reduce Agent Workflow
 
+### Task Decomposition
 - Design data splitting utility to break the big JSON into batches (fit within LLM context window, e.g., 100K tokens per batch)
 - Implement Coordinator Agent:
     - Reads the full job list JSON

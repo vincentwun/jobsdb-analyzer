@@ -143,3 +143,4 @@ jobsdb_scrape_results
 dist
 jobsdb_scrape_results/jobsdb-*
 examples
+.github

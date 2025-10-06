@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Chart, ChartConfiguration, registerables } from 'chart.js';
+import { GoogleGenAI, Type } from '@google/genai';
 import { useResultFiles } from '../hooks/useResultFiles';
 import { extractJobContents, processLocationData, JobContentExtract } from '../utils/jobParser';
 import { FileSelector } from '../components/FileSelector';
@@ -24,6 +25,41 @@ interface ExperienceRange {
   maxYears: number;
 }
 
+// Shared schema for analysis responses
+const ANALYSIS_RESPONSE_SCHEMA = {
+  type: Type.OBJECT,
+  properties: {
+    analysis_summary: {
+      type: Type.STRING,
+      description: "Brief summary of findings"
+    },
+    data_points: {
+      type: Type.ARRAY,
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          label: { 
+            type: Type.STRING, 
+            description: "Item name (skill, certification, etc.)" 
+          },
+          value: { 
+            type: Type.INTEGER, 
+            description: "Integer frequency count (how many times this item appears)" 
+          },
+          category: { 
+            type: Type.STRING, 
+            description: "Category classification" 
+          }
+        },
+        required: ["label", "value", "category"],
+        propertyOrdering: ["label", "value", "category"]
+      }
+    }
+  },
+  required: ["analysis_summary", "data_points"],
+  propertyOrdering: ["analysis_summary", "data_points"]
+};
+
 const PRESET_PROMPTS = {
   skills: {
     title: 'Technical Skills Analysis',
@@ -31,29 +67,24 @@ const PRESET_PROMPTS = {
 
 Focus on skills like: Python, Java, JavaScript, TypeScript, Go, C++, SQL, Docker, Kubernetes, AWS, Azure, GCP, Terraform, Jenkins, Git, React, Node.js, etc.
 
-Group similar items (e.g., 'AWS', 'Amazon Web Services' → 'AWS'). Count frequency and return structured data.`,
-    schema: {
-      type: "OBJECT",
-      properties: {
-        analysis_summary: {
-          type: "STRING",
-          description: "Brief summary of findings"
-        },
-        data_points: {
-          type: "ARRAY",
-          items: {
-            type: "OBJECT",
-            properties: {
-              label: { type: "STRING", description: "Skill name" },
-              value: { type: "NUMBER", description: "Frequency count" },
-              category: { type: "STRING", description: "Category (e.g., 'Programming Language', 'Cloud Platform', 'Tool')" }
-            },
-            required: ["label", "value", "category"]
-          }
-        }
-      },
-      required: ["analysis_summary", "data_points"]
-    }
+Group similar items (e.g., 'AWS', 'Amazon Web Services' → 'AWS'). 
+
+CRITICAL INSTRUCTIONS:
+- For each skill, count how many DIFFERENT job postings mention it
+- The 'value' field MUST be a WHOLE NUMBER (integer) representing the actual count
+- DO NOT use percentages, decimals, or ratios
+- Example output format:
+  {
+    "analysis_summary": "Analysis of technical skills across job postings",
+    "data_points": [
+      {"label": "Python", "value": 15, "category": "Programming Language"},
+      {"label": "Docker", "value": 12, "category": "Tool"},
+      {"label": "AWS", "value": 10, "category": "Cloud Platform"}
+    ]
+  }
+
+Note: The values 15, 12, 10 are integer counts, not 0.15, 0.12, 0.10.`,
+    schema: ANALYSIS_RESPONSE_SCHEMA
   },
   certs: {
     title: 'Certification Requirements Analysis',
@@ -61,29 +92,24 @@ Group similar items (e.g., 'AWS', 'Amazon Web Services' → 'AWS'). Count freque
 
 Focus on certifications like: AWS Certified Solutions Architect (SAA), Azure Administrator (AZ-104), Google Cloud Professional, CISSP, PMP, CKA (Certified Kubernetes Administrator), Terraform Associate, etc.
 
-Group similar items and count frequency. Return structured data.`,
-    schema: {
-      type: "OBJECT",
-      properties: {
-        analysis_summary: {
-          type: "STRING",
-          description: "Brief summary of certification requirements"
-        },
-        data_points: {
-          type: "ARRAY",
-          items: {
-            type: "OBJECT",
-            properties: {
-              label: { type: "STRING", description: "Certification name" },
-              value: { type: "NUMBER", description: "Frequency count" },
-              category: { type: "STRING", description: "Category (e.g., 'Cloud', 'Security', 'Project Management')" }
-            },
-            required: ["label", "value", "category"]
-          }
-        }
-      },
-      required: ["analysis_summary", "data_points"]
-    }
+Group similar items.
+
+CRITICAL INSTRUCTIONS:
+- For each certification, count how many DIFFERENT job postings require it
+- The 'value' field MUST be a WHOLE NUMBER (integer) representing the actual count
+- DO NOT use percentages, decimals, or ratios
+- Example output format:
+  {
+    "analysis_summary": "Analysis of required certifications across job postings",
+    "data_points": [
+      {"label": "AWS Certified Solutions Architect", "value": 8, "category": "Cloud"},
+      {"label": "CISSP", "value": 5, "category": "Security"},
+      {"label": "PMP", "value": 3, "category": "Project Management"}
+    ]
+  }
+
+Note: The values 8, 5, 3 are integer counts, not 0.8, 0.5, 0.3.`,
+    schema: ANALYSIS_RESPONSE_SCHEMA
   }
 };
 
@@ -164,48 +190,55 @@ export const AnalysisPage: React.FC = () => {
     jobContents: JobContentExtract[]
   ): Promise<GeminiAnalysisResponse> => {
     const preset = PRESET_PROMPTS[presetKey as keyof typeof PRESET_PROMPTS];
+    const selectedModel = localStorage.getItem('GEMINI_MODEL') || 'gemini-2.5-flash-lite';
 
     const combinedText = jobContents
       .map((job, idx) => `Job ${idx + 1}:\nSummary: ${job.abstract}\nDetails: ${job.content}`)
       .join('\n\n');
 
-    const requestBody = {
-      contents: [{
-        parts: [{
-          text: `${preset.systemPrompt}\n\nJob Descriptions:\n${combinedText}`
-        }]
-      }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: preset.schema
+    const promptText = `${preset.systemPrompt}\n\nJob Descriptions:\n${combinedText}`;
+
+    // Initialize Gemini AI with API key
+    const ai = new GoogleGenAI({ apiKey });
+
+    try {
+      const response = await ai.models.generateContent({
+        model: selectedModel,
+        contents: promptText,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: preset.schema
+        }
+      });
+
+      // Parse the response
+      const resultText = response.text;
+      
+      if (!resultText) {
+        throw new Error('Empty response from Gemini API');
       }
-    };
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`;
+      const parsedResult: GeminiAnalysisResponse = JSON.parse(resultText);
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(requestBody)
-    });
+      // Post-process: Ensure all values are integers and scale if needed
+      // If values are decimals (like 0.2, 0.4), they might be normalized percentages
+      const maxValue = Math.max(...parsedResult.data_points.map(dp => dp.value));
+      const totalJobs = jobContents.length;
+      
+      // If max value is less than 1, assume these are percentages/ratios and scale up
+      const scalingNeeded = maxValue < 1 && maxValue > 0;
+      
+      parsedResult.data_points = parsedResult.data_points.map(dp => ({
+        ...dp,
+        // If scaling needed, multiply by total jobs, otherwise just round
+        value: Math.round(scalingNeeded ? dp.value * totalJobs : dp.value)
+      }));
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Gemini API error: ${response.status} - ${errorText}`);
+      return parsedResult;
+    } catch (error: any) {
+      console.error('Gemini API error:', error);
+      throw new Error(`Gemini API error: ${error.message || String(error)}`);
     }
-
-    const data = await response.json();
-
-    if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-      throw new Error('Invalid response structure from Gemini API');
-    }
-
-    const textResponse = data.candidates[0].content.parts[0].text;
-    const parsedResult: GeminiAnalysisResponse = JSON.parse(textResponse);
-
-    return parsedResult;
   };
 
   const renderMainChart = (result: GeminiAnalysisResponse) => {
@@ -531,7 +564,6 @@ export const AnalysisPage: React.FC = () => {
             value={selectedPreset}
             onChange={(e) => setSelectedPreset(e.target.value)}
           >
-            <option value="">-- Select preset --</option>
             <option value="skills">Analyze Most Common Skills (Python, Docker, K8s, AWS, etc.)</option>
             <option value="certs">Analyze Required Certifications (AWS SAA, Azure AZ-104, etc.)</option>
           </select>

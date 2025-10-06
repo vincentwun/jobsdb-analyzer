@@ -1,12 +1,23 @@
 import React, { useState, useEffect, FormEvent } from 'react';
 
+const GEMINI_MODELS = [
+  { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
+  { value: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite Latest' },
+  { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+  { value: 'gemini-flash-latest', label: 'Gemini Flash Latest' },
+  { value: 'gemini-2.5-pro', label: 'Gemini 2.5 Pro' },
+];
+
 export const SettingPage: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash-lite');
   const [saveStatus, setSaveStatus] = useState<string>('');
 
   useEffect(() => {
-    const stored = localStorage.getItem('GEMINI_API_KEY') || '';
-    setApiKey(stored);
+    const storedKey = localStorage.getItem('GEMINI_API_KEY') || '';
+    const storedModel = localStorage.getItem('GEMINI_MODEL') || 'gemini-2.5-flash-lite';
+    setApiKey(storedKey);
+    setSelectedModel(storedModel);
   }, []);
 
   const handleSave = (e?: FormEvent) => {
@@ -21,9 +32,10 @@ export const SettingPage: React.FC = () => {
 
     try {
       localStorage.setItem('GEMINI_API_KEY', trimmedKey);
+      localStorage.setItem('GEMINI_MODEL', selectedModel);
       showStatus('✓ Saved');
     } catch (err) {
-      console.error('Failed to save API key', err);
+      console.error('Failed to save settings', err);
       showStatus('Failed to save');
     }
   };
@@ -38,7 +50,7 @@ export const SettingPage: React.FC = () => {
   return (
     <section className="panel">
       <h2>Settings</h2>
-      <p className="muted-note">Enter your Gemini API Key (stored locally in localStorage)</p>
+      <p className="muted-note">Configure your Gemini API settings (stored locally in localStorage)</p>
 
       <div className="settings-wrapper">
         <div className="setting-field">
@@ -57,6 +69,22 @@ export const SettingPage: React.FC = () => {
               }
             }}
           />
+        </div>
+
+        <div className="setting-field">
+          <label htmlFor="gemModel" className="setting-label">Gemini Model</label>
+          <select
+            id="gemModel"
+            className="setting-input"
+            value={selectedModel}
+            onChange={(e) => setSelectedModel(e.target.value)}
+          >
+            {GEMINI_MODELS.map(model => (
+              <option key={model.value} value={model.value}>
+                {model.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="setting-actions">
