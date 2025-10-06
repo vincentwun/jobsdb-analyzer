@@ -16,22 +16,22 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '../public')));
-// Serve compiled frontend JS from dist/frontend under /dist
-app.use('/dist', express.static(path.join(__dirname, '../dist/frontend')));
+// Serve compiled frontend assets from dist
+app.use('/dist', express.static(path.join(__dirname, '.')));
 
-// Serve top-level routes directly from public subfolders to avoid client-side redirects
+// Serve React app for all main routes
+const htmlPath = path.join(__dirname, 'index.html');
 app.get('/', (req, res) => {
-  return res.sendFile(path.join(__dirname, '../public', 'index', 'index.html'));
+  return res.sendFile(htmlPath);
 });
 app.get('/result.html', (req, res) => {
-  return res.sendFile(path.join(__dirname, '../public', 'result', 'result.html'));
+  return res.sendFile(htmlPath);
 });
 app.get('/analysis.html', (req, res) => {
-  return res.sendFile(path.join(__dirname, '../public', 'analysis', 'analysis.html'));
+  return res.sendFile(htmlPath);
 });
 app.get('/setting.html', (req, res) => {
-  return res.sendFile(path.join(__dirname, '../public', 'setting', 'setting.html'));
+  return res.sendFile(htmlPath);
 });
 
 // Simple SSE client registry keyed by token

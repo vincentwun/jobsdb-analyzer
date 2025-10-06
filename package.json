@@ -1,5 +1,7 @@
 {
   "dependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
     "@ulixee/cloud": "^2.0.0-alpha.30",
     "@ulixee/hero": "^2.0.0-alpha.30",
     "async-mutex": "^0.5.0",
@@ -7,6 +9,8 @@
     "express": "^5.1.0",
     "he": "^1.2.0",
     "html-to-text": "^9.0.5",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
     "semaphore-async-await": "^1.5.1",
     "tmp": "^0.2.3",
     "uuid": "^10.0.0"
@@ -37,9 +41,11 @@
   },
   "scripts": {
     "test": "tsc && jest --detectOpenHandles",
-    "build": "tsc",
+    "build:backend": "tsc",
+    "build:frontend": "node build-frontend.js",
+    "build": "tsc && node build-frontend.js",
     "start": "node dist/server.js",
-    "clear": "rimraf dist build jobsdb_scrape_logs jobsdb_scrape_results",
-    "dev": "npm run build && npm run start"
+    "dev": "npm run build && npm run start",
+    "clear": "rimraf dist build jobsdb_scrape_logs jobsdb_scrape_results"
   }
 }
