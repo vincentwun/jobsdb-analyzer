@@ -1,3 +1,4 @@
+// Brief: Main app router that selects pages based on window path
 import React from 'react';
 import { Sidebar } from './components/Sidebar';
 import { IndexPage } from './pages/IndexPage';

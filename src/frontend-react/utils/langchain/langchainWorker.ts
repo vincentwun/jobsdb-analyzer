@@ -2,14 +2,13 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { DataPoint } from '../analysisTypes';
 
-// Worker agent: process a chunk of job data
+// Brief: Worker that processes a chunk using LangChain and returns DataPoint array
 export interface WorkerResult {
   chunkIndex: number;
   data: DataPoint[];
   error?: string;
 }
 
-// Extract skills from job content using LangChain
 async function extractSkills(
   apiKey: string,
   model: string,
@@ -73,7 +72,6 @@ Response format:
   return parsed.data;
 }
 
-// Extract certifications from job content
 async function extractCertifications(
   apiKey: string,
   model: string,

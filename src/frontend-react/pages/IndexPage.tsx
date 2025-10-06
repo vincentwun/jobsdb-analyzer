@@ -1,3 +1,4 @@
+// Brief: Page to configure and start the scraper, showing SSE progress
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { safeCloseEventSource, parseSSEData, generateToken } from '../utils/eventSource';
 

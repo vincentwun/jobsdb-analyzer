@@ -1,8 +1,8 @@
-import { mergeFiles ,appendFileContent} from '../backend/file_io_utils';
+import { mergeFiles ,appendFileContent} from '../src/backend/file_io_utils';
 import { readFileSync, writeFileSync, unlinkSync } from 'fs';
 import * as fs from 'fs';
 import * as path from 'path';
-import { TempFile } from '../backend/tempfile'; // Adjust the path if needed
+import { TempFile } from '../src/backend/tempfile'; // Adjust the path if needed
 import {fileSync} from "tmp"
 
 describe('TempFile - copyFile', () => {

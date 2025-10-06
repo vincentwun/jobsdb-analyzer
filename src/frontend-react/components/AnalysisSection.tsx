@@ -1,5 +1,4 @@
-// Reusable analysis section component with chart rendering
-
+// Brief: Component that renders an analysis chart and summary
 import React, { useEffect, useRef } from 'react';
 import { Chart, ChartConfiguration } from 'chart.js';
 import { AnalysisResult } from '../utils/analysisTypes';
@@ -25,11 +24,11 @@ export const AnalysisSection: React.FC<AnalysisSectionProps> = ({
   const chartRef = useRef<Chart | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Render chart when result changes
+  
   useEffect(() => {
     if (!result || !canvasRef.current) return;
 
-    // Destroy previous chart
+    
     if (chartRef.current) {
       chartRef.current.destroy();
       chartRef.current = null;
@@ -39,12 +38,12 @@ export const AnalysisSection: React.FC<AnalysisSectionProps> = ({
       .sort((a, b) => b.value - a.value)
       .slice(0, CHART_CONFIG.MAX_TOP_ITEMS);
 
-    if (topDataPoints.length === 0) return;
+  if (topDataPoints.length === 0) return;
 
     const labels = topDataPoints.map(dp => dp.label);
     const values = topDataPoints.map(dp => dp.value);
 
-    const categoryColors: { [key: string]: string } = {};
+  const categoryColors: { [key: string]: string } = {};
     const colorPalette = [
       '#0ea5a4', '#06b6d4', '#8b5cf6', '#ec4899', '#f59e0b',
       '#10b981', '#3b82f6', '#6366f1', '#14b8a6', '#f97316'

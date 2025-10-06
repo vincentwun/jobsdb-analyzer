@@ -1,7 +1,4 @@
-/**
- * Job-related data structures and parsing utilities
- */
-
+// Brief: Utilities to parse and extract job contents and summaries from scrape results
 export interface JobSummary {
   id: string;
   title: string;

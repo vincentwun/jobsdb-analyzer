@@ -1,3 +1,4 @@
+// Brief: Hook returning normalized current window path and updates on history changes
 import { useEffect, useState } from 'react';
 
 export function useLocation(): string {

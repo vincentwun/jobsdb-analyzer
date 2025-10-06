@@ -1,3 +1,4 @@
+// Brief: Page to view parsed scrape results in human-readable summaries
 import React, { useState, useEffect } from 'react';
 import { useResultFiles } from '../hooks/useResultFiles';
 import { parseJobsFromJson, JobSummary } from '../utils/jobParser';

@@ -1,4 +1,4 @@
-// Estimate token count for text (supports mixed Chinese/English)
+// Brief: Helpers to split job data into token-based chunks for LangChain coordination
 export function estimateTokenCount(text: string): number {
   // Detect CJK (Chinese/Japanese/Korean) characters
   const cjkChars = text.match(/[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g)?.length || 0;
@@ -17,7 +17,6 @@ export function estimateTokenCount(text: string): number {
   }
 }
 
-// Split job data into chunks based on token limit
 export interface DataChunk<T> {
   index: number;
   data: T[];
@@ -83,7 +82,6 @@ export function splitJobData<T>(
   return chunks;
 }
 
-// Coordinator agent: analyze and split data
 export interface CoordinatorResult<T> {
   totalJobs: number;
   totalTokens: number;

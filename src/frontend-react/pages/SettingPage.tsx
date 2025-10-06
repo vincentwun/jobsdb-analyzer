@@ -1,3 +1,4 @@
+// Brief: Settings page to configure Gemini API key, model, and LangChain option
 import React, { useState, useEffect, useRef } from 'react';
 import { GEMINI_MODELS, STORAGE_KEYS, DEFAULT_VALUES } from '../utils/constants';
 import { saveToLocalStorage, getFromLocalStorage } from '../utils/localStorage';

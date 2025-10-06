@@ -1,5 +1,4 @@
-// Analysis runner implementations using Gemini AI or local processing
-
+// Brief: Dispatches analysis presets to appropriate local, Gemini, or LangChain runners
 import { AnalysisRunner, AnalysisResult, AnalysisPresetKey } from './analysisTypes';
 import { analyzeWithGemini, PRESET_PROMPTS } from './geminiAnalysis';
 import { JobContentExtract, processLocationData } from './jobParser';
@@ -59,7 +58,6 @@ export const experienceRunner: AnalysisRunner = async (apiKey, model, preset, jo
   };
 };
 
-// Helper function to categorize experience into ranges
 function getExperienceRange(years: number): string {
   if (years <= 2) return '0-2 years';
   if (years <= 5) return '3-5 years';
@@ -100,7 +98,6 @@ export const educationRunner: AnalysisRunner = async (apiKey, model, preset, job
     { pattern: /\b(?:master|master'?s|硕士|碩士)\b/gi, label: "Master's Degree" },
     { pattern: /\b(?:bachelor|bachelor'?s|degree|学士|學士|本科)\b/gi, label: "Bachelor's Degree" },
     { pattern: /\b(?:diploma|associate|高级文凭|高級文憑|副学士|副學士)\b/gi, label: 'Diploma / Associate' },
-    { pattern: /\b(?:certificate|certification|证书|證書)\b/gi, label: 'Certificate' },
     { pattern: /\b(?:high school|secondary|中学|中學|高中)\b/gi, label: 'High School' }
   ];
 

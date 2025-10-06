@@ -1,7 +1,7 @@
+// Brief: Merge and aggregate DataPoint arrays from multiple LangChain workers
 import { DataPoint } from '../analysisTypes';
 import { WorkerResult } from './langchainWorker';
 
-// Merge data points from multiple workers
 function mergeDataPoints(dataPointsArrays: DataPoint[][]): DataPoint[] {
   const merged = new Map<string, number>();
 
@@ -19,7 +19,6 @@ function mergeDataPoints(dataPointsArrays: DataPoint[][]): DataPoint[] {
     .sort((a, b) => b.value - a.value);
 }
 
-// Aggregator agent: merge results from all workers
 export interface AggregatorResult {
   totalWorkers: number;
   successfulWorkers: number;

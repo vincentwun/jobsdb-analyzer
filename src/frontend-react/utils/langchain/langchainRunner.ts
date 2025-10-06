@@ -1,9 +1,9 @@
+// Brief: LangChain Map-Reduce runner that coordinates workers and aggregates results
 import { AnalysisResult, AnalysisRunner, AnalysisPresetKey } from '../analysisTypes';
 import { coordinateAnalysis } from './langchainCoordinator';
 import { processChunk, WorkerResult } from './langchainWorker';
 import { aggregateResults } from './langchainAggregator';
 
-// LangChain runner with Map-Reduce workflow
 export const langchainRunner: AnalysisRunner = async (
   apiKey: string,
   model: string,
@@ -24,15 +24,12 @@ export const langchainRunner: AnalysisRunner = async (
     };
   }
 
-  // Step 1: Coordinator - analyze and split data
   console.log(`[Coordinator] Analyzing ${jobContents.length} jobs...`);
   const coordination = coordinateAnalysis(jobContents, 100000);
   
   console.log(`[Coordinator] Strategy: ${coordination.strategy}`);
   console.log(`[Coordinator] Total tokens: ${coordination.totalTokens}`);
   console.log(`[Coordinator] Chunks: ${coordination.chunks.length}`);
-
-  // Step 2: Workers - process chunks in parallel
   console.log(`[Workers] Processing ${coordination.chunks.length} chunks...`);
   
   const workerPromises = coordination.chunks.map(chunk => 
@@ -47,7 +44,6 @@ export const langchainRunner: AnalysisRunner = async (
 
   const workerResults: WorkerResult[] = await Promise.all(workerPromises);
 
-  // Step 3: Aggregator - merge results
   console.log(`[Aggregator] Merging results from ${workerResults.length} workers...`);
   const aggregated = aggregateResults(workerResults, 15);
 

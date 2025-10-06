@@ -1,3 +1,4 @@
+// Brief: Page that runs AI analyses on selected result files and shows charts
 import React, { useState } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { useResultFiles } from '../hooks/useResultFiles';

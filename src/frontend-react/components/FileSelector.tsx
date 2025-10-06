@@ -1,5 +1,6 @@
 import React from 'react';
 
+// Brief: File selector UI for choosing scraped result files
 interface FileSelectorProps {
   files: string[];
   selectedFile: string;
@@ -8,10 +9,6 @@ interface FileSelectorProps {
   showIcon?: boolean;
   jobCount?: number;
 }
-
-/**
- * Reusable file selector component with file info display
- */
 export const FileSelector: React.FC<FileSelectorProps> = ({
   files,
   selectedFile,

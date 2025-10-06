@@ -1,4 +1,4 @@
-// Gemini AI analysis utilities
+// Brief: Helpers to call Gemini AI and normalize structured analysis responses
 import { GoogleGenAI, Type } from '@google/genai';
 import { JobContentExtract } from './jobParser';
 
@@ -13,7 +13,6 @@ export interface GeminiAnalysisResponse {
   data_points: AnalysisDataPoint[];
 }
 
-// Shared schema for analysis responses
 const ANALYSIS_RESPONSE_SCHEMA = {
   type: Type.OBJECT,
   properties: {
@@ -101,9 +100,6 @@ Note: The values 8, 5, 3 are integer counts, not 0.8, 0.5, 0.3.`,
   }
 };
 
-/**
- * Call Gemini AI for structured analysis
- */
 export async function analyzeWithGemini(
   apiKey: string,
   model: string,
@@ -147,9 +143,6 @@ export async function analyzeWithGemini(
   return normalizeAnalysisResult(parsedResult, jobContents.length);
 }
 
-/**
- * Normalize analysis result to ensure integer values
- */
 function normalizeAnalysisResult(
   result: GeminiAnalysisResponse,
   totalJobs: number

@@ -1,5 +1,4 @@
-// Shared types for analysis results and runners
-
+// Brief: Types used by analysis runners and UI sections
 export interface DataPoint {
   label: string;
   value: number;

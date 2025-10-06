@@ -28,7 +28,7 @@ describe('scrape_jobsdb.ts test', () => {
 
   // Increase timeout for long-running test
   test('should successfully execute the script for region=hk and check for result file', () => {
-    const scriptPath = 'src/scrape_jobsdb.ts';
+  const scriptPath = 'src/backend/scrape_jobsdb.ts';
 
     // Run the script synchronously with argument "10"
     runScriptSync(scriptPath, ['-n 1', '-s tests','-r hk']);
@@ -38,7 +38,7 @@ describe('scrape_jobsdb.ts test', () => {
     expect(resultFile).not.toBeNull(); // Expect that a matching file was found
   });
   test('should successfully execute the script for region=th and check for result file', () => {
-    const scriptPath = 'src/scrape_jobsdb.ts';
+  const scriptPath = 'src/backend/scrape_jobsdb.ts';
 
     // Run the script synchronously with argument "10"
     runScriptSync(scriptPath, ['-n 1', '-s tests','-r th']);

@@ -1,5 +1,4 @@
-// App-wide constants and configuration
-
+// Brief: Application-wide constants and default values
 export const STORAGE_KEYS = {
   GEMINI_API_KEY: 'GEMINI_API_KEY',
   GEMINI_MODEL: 'GEMINI_MODEL',

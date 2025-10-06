@@ -1,9 +1,6 @@
-// Safe localStorage utility functions
+// Brief: Safe helpers for reading and writing settings to localStorage
 import { STORAGE_KEYS, DEFAULT_VALUES } from './constants';
 
-/**
- * Safely save value to localStorage with error handling
- */
 export function saveToLocalStorage(key: string, value: string): boolean {
   try {
     localStorage.setItem(key, value);
@@ -14,9 +11,6 @@ export function saveToLocalStorage(key: string, value: string): boolean {
   }
 }
 
-/**
- * Safely get value from localStorage with fallback
- */
 export function getFromLocalStorage(key: string, fallback: string = ''): string {
   try {
     return localStorage.getItem(key) || fallback;
@@ -26,24 +20,15 @@ export function getFromLocalStorage(key: string, fallback: string = ''): string 
   }
 }
 
-/**
- * Get Gemini API key from localStorage
- */
 export function getGeminiApiKey(): string | null {
   const key = getFromLocalStorage(STORAGE_KEYS.GEMINI_API_KEY);
   return key || null;
 }
 
-/**
- * Get selected Gemini model from localStorage
- */
 export function getGeminiModel(): string {
   return getFromLocalStorage(STORAGE_KEYS.GEMINI_MODEL, DEFAULT_VALUES.GEMINI_MODEL);
 }
 
-/**
- * Get whether to use LangChain from localStorage
- */
 export function getUseLangChain(): boolean {
   const value = getFromLocalStorage(STORAGE_KEYS.USE_LANGCHAIN, String(DEFAULT_VALUES.USE_LANGCHAIN));
   return value === 'true';

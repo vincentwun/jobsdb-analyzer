@@ -1,9 +1,7 @@
+// Brief: Hook to load available result files and fetch selected file data
 import { useState, useEffect } from 'react';
 import { extractJobContents } from '../utils/jobParser';
 
-/**
- * Custom hook for loading and managing result files
- */
 export function useResultFiles(autoLoadFromUrl: boolean = false) {
   const [files, setFiles] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
