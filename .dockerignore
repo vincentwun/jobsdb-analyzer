@@ -1,0 +1,8 @@
+node_modules
+dist
+build
+jobsdb_scrape_results
+*.log
+.git
+tests
+examples
