@@ -14,9 +14,9 @@ export const DEFAULT_VALUES = {
 
 export const GEMINI_MODELS = [
   { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash Lite' },
-  { value: 'gemini-flash-lite-latest', label: 'Gemini Flash Lite Latest' },
+  { value: 'gemini-flash-lite-latest', label: 'Gemini 2.5 Flash Lite Latest' },
   { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
-  { value: 'gemini-flash-latest', label: 'Gemini Flash Latest' },
+  { value: 'gemini-flash-latest', label: 'Gemini 2.5 Flash Latest' },
 ] as const;
 
 export const CHART_CONFIG = {

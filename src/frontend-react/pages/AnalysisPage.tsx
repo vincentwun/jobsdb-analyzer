@@ -1,5 +1,5 @@
 // Brief: Page that runs AI analyses on selected result files and shows charts
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { useResultFiles } from '../hooks/useResultFiles';
 import { extractJobContents } from '../utils/jobParser';
@@ -9,6 +9,7 @@ import { AnalysisSection } from '../components/AnalysisSection';
 import { getGeminiApiKey, getGeminiModel } from '../utils/localStorage';
 import { analysisRunner } from '../utils/analysisRunner';
 import { AnalysisPresetKey, AnalysisSectionState } from '../utils/analysisTypes';
+import { estimateTokenCount } from '../utils/langchain/langchainCoordinator';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -31,14 +32,85 @@ export const AnalysisPage: React.FC = () => {
   const { files, selectedFile, setSelectedFile, jobCount, loadFileData } = useResultFiles(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'loading' | 'success' | 'error' } | null>(null);
   const [sectionsState, setSectionsState] = useState<Record<string, AnalysisSectionState>>({});
+  const [selectedAnalysisTypes, setSelectedAnalysisTypes] = useState<Set<AnalysisPresetKey>>(new Set());
+  const [estimatedTokens, setEstimatedTokens] = useState<number>(0);
 
   const setStatus = (text: string, type: 'loading' | 'success' | 'error') => {
     setStatusMessage({ text, type });
   };
 
+  // Calculate estimated tokens when file or analysis types change
+  useEffect(() => {
+    const calculateTokens = async () => {
+      if (!selectedFile || selectedAnalysisTypes.size === 0) {
+        setEstimatedTokens(0);
+        return;
+      }
+
+      try {
+        const jobData = await loadFileData(selectedFile);
+        if (!jobData) {
+          setEstimatedTokens(0);
+          return;
+        }
+
+        const jobContents = extractJobContents(jobData);
+        if (jobContents.length === 0) {
+          setEstimatedTokens(0);
+          return;
+        }
+
+        // Only calculate tokens for AI-powered analysis (skills, certs)
+        // Local analysis (experience, location, education) consume 0 tokens
+        let totalTokens = 0;
+        selectedAnalysisTypes.forEach(type => {
+          if (type === 'skills' || type === 'certs') {
+            const text = JSON.stringify(jobContents);
+            totalTokens += estimateTokenCount(text);
+          }
+          // experience, location, education are processed locally - no tokens used
+        });
+
+        setEstimatedTokens(totalTokens);
+      } catch (error) {
+        console.error('Error calculating tokens:', error);
+        setEstimatedTokens(0);
+      }
+    };
+
+    calculateTokens();
+  }, [selectedFile, selectedAnalysisTypes, loadFileData]);
+
+  // Handle checkbox changes
+  const handleCheckboxChange = (key: AnalysisPresetKey) => {
+    setSelectedAnalysisTypes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
+  // Handle "All" checkbox
+  const handleAllCheckbox = () => {
+    if (selectedAnalysisTypes.size === ANALYSIS_SECTIONS.length) {
+      setSelectedAnalysisTypes(new Set());
+    } else {
+      setSelectedAnalysisTypes(new Set(ANALYSIS_SECTIONS.map(s => s.key)));
+    }
+  };
+
   const handleAnalyzeAll = async () => {
     if (!selectedFile) {
       setStatus('Please select a result file.', 'error');
+      return;
+    }
+
+    if (selectedAnalysisTypes.size === 0) {
+      setStatus('Please select at least one analysis type.', 'error');
       return;
     }
 
@@ -64,9 +136,12 @@ export const AnalysisPage: React.FC = () => {
         return;
       }
 
-      // Initialize all sections to loading state
+      // Filter sections based on user selection
+      const selectedSections = ANALYSIS_SECTIONS.filter(s => selectedAnalysisTypes.has(s.key));
+
+      // Initialize selected sections to loading state
       const initialState: Record<string, AnalysisSectionState> = {};
-      ANALYSIS_SECTIONS.forEach(section => {
+      selectedSections.forEach(section => {
         initialState[section.key] = { loading: true, result: null, error: null };
       });
       setSectionsState(initialState);
@@ -76,8 +151,8 @@ export const AnalysisPage: React.FC = () => {
       const model = getGeminiModel();
 
       // Group sections by parallel execution
-      const parallelSections = ANALYSIS_SECTIONS.filter(s => s.parallel);
-      const sequentialSections = ANALYSIS_SECTIONS.filter(s => !s.parallel);
+      const parallelSections = selectedSections.filter(s => s.parallel);
+      const sequentialSections = selectedSections.filter(s => !s.parallel);
 
       // Run parallel sections (skills + certs) concurrently
       await Promise.allSettled(
@@ -146,15 +221,103 @@ export const AnalysisPage: React.FC = () => {
         jobCount={jobCount}
       />
 
+      {/* Analysis Type Selection */}
+      <div style={{ marginTop: '20px', padding: '16px', backgroundColor: '#f9fafb', borderRadius: '8px' }}>
+        <h4 style={{ marginBottom: '12px', fontSize: '14px', fontWeight: '600', color: '#374151' }}>
+          Select Analysis Types:
+        </h4>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+          {/* All checkbox */}
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+            <input
+              type="checkbox"
+              checked={selectedAnalysisTypes.size === ANALYSIS_SECTIONS.length}
+              onChange={handleAllCheckbox}
+              style={{ marginRight: '6px', cursor: 'pointer' }}
+            />
+            <strong>All</strong>
+          </label>
+
+          <span style={{ color: '#d1d5db' }}>|</span>
+
+          {/* Individual checkboxes */}
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+            <input
+              type="checkbox"
+              checked={selectedAnalysisTypes.has('skills')}
+              onChange={() => handleCheckboxChange('skills')}
+              style={{ marginRight: '6px', cursor: 'pointer' }}
+            />
+            Skills
+          </label>
+
+          <span style={{ color: '#d1d5db' }}>|</span>
+
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+            <input
+              type="checkbox"
+              checked={selectedAnalysisTypes.has('certs')}
+              onChange={() => handleCheckboxChange('certs')}
+              style={{ marginRight: '6px', cursor: 'pointer' }}
+            />
+            Cert
+          </label>
+
+          <span style={{ color: '#d1d5db' }}>|</span>
+
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+            <input
+              type="checkbox"
+              checked={selectedAnalysisTypes.has('experience')}
+              onChange={() => handleCheckboxChange('experience')}
+              style={{ marginRight: '6px', cursor: 'pointer' }}
+            />
+            Experience
+          </label>
+
+          <span style={{ color: '#d1d5db' }}>|</span>
+
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+            <input
+              type="checkbox"
+              checked={selectedAnalysisTypes.has('location')}
+              onChange={() => handleCheckboxChange('location')}
+              style={{ marginRight: '6px', cursor: 'pointer' }}
+            />
+            Location
+          </label>
+
+          <span style={{ color: '#d1d5db' }}>|</span>
+
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', fontSize: '14px' }}>
+            <input
+              type="checkbox"
+              checked={selectedAnalysisTypes.has('education')}
+              onChange={() => handleCheckboxChange('education')}
+              style={{ marginRight: '6px', cursor: 'pointer' }}
+            />
+            Education
+          </label>
+        </div>
+
+        {/* Token Estimate Display */}
+        <div style={{ marginTop: '12px', fontSize: '13px', color: '#6b7280' }}>
+          <strong>Estimate token:</strong>
+          <span style={{ marginLeft: '6px', color: estimatedTokens > 0 ? '#059669' : '#9ca3af', fontWeight: '600' }}>
+            {estimatedTokens.toLocaleString()}
+          </span>
+        </div>
+      </div>
+
       <div className="analysis-panel" style={{ marginTop: '20px' }}>
         <button
           className="btn-accent"
           onClick={handleAnalyzeAll}
-          disabled={!selectedFile}
+          disabled={!selectedFile || selectedAnalysisTypes.size === 0}
           style={{ width: '100%', padding: '12px', fontSize: '16px' }}
         >
           <i className="fas fa-play" aria-hidden="true" style={{ marginRight: '8px' }}></i>
-          Start Analysis (All Sections)
+          Start Analysis
         </button>
       </div>
 
@@ -163,17 +326,23 @@ export const AnalysisPage: React.FC = () => {
       )}
 
       {/* Render all analysis sections */}
-      {ANALYSIS_SECTIONS.map(section => (
-        <AnalysisSection
-          key={section.key}
-          id={section.key}
-          title={section.title}
-          result={sectionsState[section.key]?.result || null}
-          loading={sectionsState[section.key]?.loading || false}
-          error={sectionsState[section.key]?.error}
-          chartType={section.chartType}
-        />
-      ))}
+      {ANALYSIS_SECTIONS.map(section => {
+        const sectionState = sectionsState[section.key];
+        // Only show sections that have been analyzed or are currently loading
+        if (!sectionState) return null;
+
+        return (
+          <AnalysisSection
+            key={section.key}
+            id={section.key}
+            title={section.title}
+            result={sectionState.result}
+            loading={sectionState.loading}
+            error={sectionState.error}
+            chartType={section.chartType}
+          />
+        );
+      })}
     </section>
   );
 };

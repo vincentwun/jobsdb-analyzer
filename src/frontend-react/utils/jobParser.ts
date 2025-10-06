@@ -120,7 +120,7 @@ export function processLocationData(jobData: any): Record<string, number> {
       if (pageData.page && Array.isArray(pageData.page.jobs)) {
         for (const jobItem of pageData.page.jobs) {
           const job = jobItem.jobDetails?.job;
-          const locationLabel = job?.location?.label || job?.location;
+          const locationLabel = job?.location?.label;
 
           if (locationLabel) {
             const normalizedLocation = String(locationLabel).split(',')[0].trim();
@@ -135,7 +135,7 @@ export function processLocationData(jobData: any): Record<string, number> {
     for (const scrapeResult of jobData.jobsdb_scrape_results) {
       if (scrapeResult.job_list && Array.isArray(scrapeResult.job_list)) {
         for (const item of scrapeResult.job_list) {
-          const locationLabel = item.location?.label || item.location;
+          const locationLabel = item.location?.label;
 
           if (locationLabel) {
             const normalizedLocation = String(locationLabel).split(',')[0].trim();

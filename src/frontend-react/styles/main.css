@@ -329,6 +329,8 @@ button:disabled {
   background: #eef2ff;
   border-radius: 8px;
   padding: 4px;
+  /* Ensure inner bar cannot overflow visual track */
+  overflow: hidden;
 }
 
 .progress-bar {
@@ -336,6 +338,9 @@ button:disabled {
   background: linear-gradient(90deg, #4f46e5, #7c3aed);
   border-radius: 6px;
   transition: width 0.2s;
+  /* Keep bar within its container and use border-box sizing */
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .progress-percent {
@@ -352,6 +357,10 @@ button:disabled {
   border-radius: 12px;
   padding: 12px;
   box-shadow: 0 8px 30px rgba(16, 24, 40, 0.04);
+  /* Prevent long content from expanding the container horizontally */
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 #resultBox #resultLog,
@@ -359,6 +368,13 @@ button:disabled {
   font-size: 13px;
   color: var(--muted);
   min-height: 120px;
+  /* Allow line-wrapping for long continuous strings and preserve line breaks */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  /* If content is extremely long, allow scrolling rather than stretching layout */
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .result-wrapper {
