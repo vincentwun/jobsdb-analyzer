@@ -8,7 +8,7 @@ JobsDB-Analyzer is a lightweight scraper for JobsDB that extracts job IDs, fetch
 ## Roadmap
 
 - [x] Web UI
-- [ ] Integrated LLM Analysis (Developing)
+- [x] Integrated LLM Analysis (Developing)
 - [ ] Containerize (Developing)
 
 ## Quick Start

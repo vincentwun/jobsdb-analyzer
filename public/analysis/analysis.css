@@ -60,6 +60,14 @@ table#dataTable th.text-right, table#dataTable td.text-right { text-align:right 
 .chart-container { position:relative; height:600px; margin-top:18px }
 #chartCanvas { max-height:600px; width:100% }
 
+/* Section wrappers for stacked layout */
+.section { margin-bottom:18px; padding:16px; border-radius:12px; background:linear-gradient(180deg,#fff,#fbfdff); box-shadow:0 6px 18px rgba(15,23,42,0.04); border:1px solid rgba(15,23,42,0.04) }
+.section-top { display:block }
+.section-middle { display:block }
+.section-bottom { display:block }
+
+.section .panel-card { background:transparent; box-shadow:none; border:0; padding:0; margin-bottom:0 }
+
 /* Summary section */
 #summary { margin-bottom:18px; line-height:1.6 }
 #summary p { margin:10px 0 }

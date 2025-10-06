@@ -81,6 +81,8 @@ Group similar items and count frequency. Return structured data.`,
 
 // Global chart instance
 let currentChart: any = null;
+let experienceChart: any = null;
+let locationChart: any = null;
 
 // DOM elements
 let fileSelect: HTMLSelectElement;
@@ -92,6 +94,8 @@ let resultsArea: HTMLElement;
 let resultsSummary: HTMLElement;
 let chartCanvas: HTMLCanvasElement;
 let dataTableBody: HTMLTableSectionElement;
+let experienceCanvas: HTMLCanvasElement;
+let locationCanvas: HTMLCanvasElement;
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async () => {
@@ -104,6 +108,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   resultsSummary = document.getElementById('resultsSummary') as HTMLElement;
   chartCanvas = document.getElementById('analysisChart') as HTMLCanvasElement;
   dataTableBody = document.getElementById('dataTableBody') as HTMLTableSectionElement;
+  experienceCanvas = document.getElementById('experienceChart') as HTMLCanvasElement;
+  locationCanvas = document.getElementById('locationChart') as HTMLCanvasElement;
 
   await loadResultFiles();
   analyzeBtn.addEventListener('click', handleAnalyze);
@@ -187,6 +193,10 @@ async function handleAnalyze(): Promise<void> {
 
     displayResults(analysisResult);
     setStatus('Analysis complete!', 'success');
+
+    // Render additional charts (Experience & Location)
+    renderExperienceChart(jobContents);
+    renderLocationChart(jobData);
 
   } catch (error: any) {
     console.error('Analysis error:', error);
@@ -424,4 +434,295 @@ function setStatus(message: string, type: 'loading' | 'success' | 'error'): void
   statusMessage.style.backgroundColor = color.bg;
   statusMessage.style.borderLeft = `4px solid ${color.border}`;
   statusMessage.style.color = color.text;
+}
+
+// ===============================================
+// Experience Years Extraction (Regex-based)
+// ===============================================
+
+interface ExperienceRange {
+  minYears: number;
+  maxYears: number;
+}
+
+/**
+ * Extract work experience years range using Regex patterns
+ * Based on location_and_years.html implementation
+ */
+function extractExperienceManual(content: string): ExperienceRange {
+  let min = 0;
+  let max = 0;
+  
+  // Clean content: remove newlines and normalize spaces
+  const cleanContent = content.toLowerCase().replace(/[\r\n]/g, ' ').replace(/\s+/g, ' ');
+
+  // Pattern 1&2: Range expressions (N to M years, N-M years, Around N-M years)
+  const regexRange = /(\d+)\s*(?:to|-)\s*(\d+)\s*years/i;
+  const regexAroundRange = /around\s*(\d+)-(\d+)\s*years/i;
+
+  let match = cleanContent.match(regexRange) || cleanContent.match(regexAroundRange);
+  if (match) {
+    min = parseInt(match[1]);
+    max = parseInt(match[2]);
+  }
+
+  // Pattern 3: Minimum years (At least N year(s)) - only if no range found
+  const regexAtLeast = /at\s*least\s*(\d+)\s*year/i;
+  match = cleanContent.match(regexAtLeast);
+  if (match && min === 0) {
+    min = parseInt(match[1]);
+    max = 20; // Set to max value to represent "or more"
+  }
+
+  // Pattern 4: N years or above - only if no range or "at least" found
+  const regexOrAbove = /(\d+)\s*years?\s*or\s*above/i;
+  match = cleanContent.match(regexOrAbove);
+  if (match && min === 0) {
+    min = parseInt(match[1]);
+    max = 20;
+  }
+
+  // Swap if min > max (unless max is 20 representing "or more")
+  if (min > max && max !== 20) {
+    [min, max] = [max, min];
+  }
+
+  return { minYears: min, maxYears: max };
+}
+
+/**
+ * Aggregate experience data into predefined year buckets
+ */
+function aggregateExperienceData(jobContents: JobContentExtract[]): Record<string, number> {
+  const buckets: Record<string, number> = {
+    '1-3 years': 0,
+    '4-7 years': 0,
+    '8-10 years': 0,
+    '10+ years': 0,
+  };
+
+  for (const job of jobContents) {
+    const combinedText = `${job.abstract} ${job.content}`;
+    const { minYears } = extractExperienceManual(combinedText);
+
+    if (minYears === 0) continue; // Skip if no experience data found
+
+    if (minYears >= 1 && minYears <= 3) {
+      buckets['1-3 years']++;
+    } else if (minYears >= 4 && minYears <= 7) {
+      buckets['4-7 years']++;
+    } else if (minYears >= 8 && minYears <= 10) {
+      buckets['8-10 years']++;
+    } else if (minYears > 10) {
+      buckets['10+ years']++;
+    }
+  }
+
+  return buckets;
+}
+
+/**
+ * Render Experience Years Bar Chart (Vertical)
+ */
+function renderExperienceChart(jobContents: JobContentExtract[]): void {
+  const experienceCounts = aggregateExperienceData(jobContents);
+
+  if (experienceChart) {
+    experienceChart.destroy();
+  }
+
+  const ctx = experienceCanvas.getContext('2d');
+  if (!ctx) {
+    console.error('Failed to get experience chart context');
+    return;
+  }
+
+  const labels = Object.keys(experienceCounts);
+  const counts = Object.values(experienceCounts);
+
+  // Generate gradient colors (green shades)
+  const backgroundColors = labels.map((_, index) => {
+    const lightness = 90 - (index * 12);
+    return `hsl(142, 70%, ${lightness}%)`;
+  });
+
+  experienceChart = new (window as any).Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Job Count',
+        data: counts,
+        backgroundColor: backgroundColors,
+        borderColor: '#10B981',
+        borderWidth: 1,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'x', // Vertical bars
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Required Experience Years Distribution',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        }
+      },
+      scales: {
+        x: {
+          title: {
+            display: true,
+            text: 'Experience Range'
+          }
+        },
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Number of Jobs'
+          },
+          ticks: {
+            precision: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+// ===============================================
+// Location Distribution
+// ===============================================
+
+/**
+ * Extract and aggregate location data from job data
+ */
+function processLocationData(jobData: any): Record<string, number> {
+  const locationCounts: Record<string, number> = {};
+
+  // Handle array of pages format
+  if (Array.isArray(jobData)) {
+    for (const pageData of jobData) {
+      if (pageData.page && Array.isArray(pageData.page.jobs)) {
+        for (const jobItem of pageData.page.jobs) {
+          const job = jobItem.jobDetails?.job;
+          const locationLabel = job?.location?.label || job?.location;
+          
+          if (locationLabel) {
+            // Normalize location (take first part before comma)
+            const normalizedLocation = String(locationLabel).split(',')[0].trim();
+            locationCounts[normalizedLocation] = (locationCounts[normalizedLocation] || 0) + 1;
+          }
+        }
+      }
+    }
+  }
+
+  // Fallback: Handle old format with jobsdb_scrape_results
+  if (jobData.jobsdb_scrape_results && Array.isArray(jobData.jobsdb_scrape_results)) {
+    for (const scrapeResult of jobData.jobsdb_scrape_results) {
+      if (scrapeResult.job_list && Array.isArray(scrapeResult.job_list)) {
+        for (const item of scrapeResult.job_list) {
+          const locationLabel = item.location?.label || item.location;
+          
+          if (locationLabel) {
+            const normalizedLocation = String(locationLabel).split(',')[0].trim();
+            locationCounts[normalizedLocation] = (locationCounts[normalizedLocation] || 0) + 1;
+          }
+        }
+      }
+    }
+  }
+
+  return locationCounts;
+}
+
+/**
+ * Render Location Distribution Bar Chart (Horizontal)
+ */
+function renderLocationChart(jobData: any): void {
+  const locationCounts = processLocationData(jobData);
+
+  if (locationChart) {
+    locationChart.destroy();
+  }
+
+  const ctx = locationCanvas.getContext('2d');
+  if (!ctx) {
+    console.error('Failed to get location chart context');
+    return;
+  }
+
+  // Sort by count (descending) and take top 10
+  const sortedLocations = Object.entries(locationCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10);
+
+  const labels = sortedLocations.map(([location]) => location);
+  const counts = sortedLocations.map(([, count]) => count);
+
+  // Generate gradient colors (blue shades)
+  const backgroundColors = labels.map((_, index) => {
+    const lightness = 90 - (index * 8);
+    return `hsl(217, 70%, ${lightness}%)`;
+  });
+
+  locationChart = new (window as any).Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Job Count',
+        data: counts,
+        backgroundColor: backgroundColors,
+        borderColor: '#3B82F6',
+        borderWidth: 1,
+        borderRadius: 8,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      indexAxis: 'y', // Horizontal bars
+      plugins: {
+        legend: {
+          display: false
+        },
+        title: {
+          display: true,
+          text: 'Top 10 Job Locations',
+          font: {
+            size: 14,
+            weight: 'bold'
+          }
+        }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: 'Number of Jobs'
+          },
+          ticks: {
+            precision: 0
+          }
+        },
+        y: {
+          title: {
+            display: true,
+            text: 'Location'
+          }
+        }
+      }
+    }
+  });
 }
