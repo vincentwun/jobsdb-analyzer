@@ -2,25 +2,29 @@ FROM node:18-bullseye-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends chromium fonts-noto-color-emoji ca-certificates libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libxss1 libx11-xcb1 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2 && rm -rf /var/lib/apt/lists/*
 
-ENV CHROME_BIN=/usr/bin/chromium
+RUN ln -s /usr/bin/chromium /usr/bin/chrome
 
-ENV NODE_ENV=production
+ENV CHROME_BIN=/usr/bin/chromium
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium
 
 WORKDIR /usr/src/app
 
 COPY package*.json ./
 
-RUN npm ci
+RUN npm install
 
 COPY . .
 
-RUN npm run build || true
+RUN npm run build
 
-RUN npm prune --production || true
+RUN ln -s dist/backend/cloudnode.js cloudnode.js
 
-RUN mkdir -p /usr/src/app/jobsdb_scrape_results && useradd -m appuser && chown -R appuser:appuser /usr/src/app
+# 將 NODE_ENV 移到這裡
+ENV NODE_ENV=production
 
-USER appuser
+RUN npm prune --production
+
+RUN mkdir -p /usr/src/app/jobsdb_scrape_results
 
 EXPOSE 3000
 

@@ -1,7 +1,20 @@
+# Node
 node_modules
-dist
-jobsdb_scrape_results
+npm-debug.log*
 *.log
+
+# Build artifacts
+dist
+
+# App specific
+jobsdb_scrape_results
+
+# Git and Docker
 .git
+.gitignore
+Dockerfile
+.dockerignore
+
+# Folders
 tests
 examples
