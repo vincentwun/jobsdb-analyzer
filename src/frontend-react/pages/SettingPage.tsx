@@ -5,6 +5,7 @@ import { saveToLocalStorage, getFromLocalStorage } from '../utils/localStorage';
 export const SettingPage: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_VALUES.GEMINI_MODEL);
+  const [useLangChain, setUseLangChain] = useState<boolean>(DEFAULT_VALUES.USE_LANGCHAIN);
   const [saveStatus, setSaveStatus] = useState<string>('');
   
   // Flag to prevent auto-save on initial mount
@@ -14,8 +15,10 @@ export const SettingPage: React.FC = () => {
   useEffect(() => {
     const storedKey = getFromLocalStorage(STORAGE_KEYS.GEMINI_API_KEY);
     const storedModel = getFromLocalStorage(STORAGE_KEYS.GEMINI_MODEL, DEFAULT_VALUES.GEMINI_MODEL);
+    const storedLangChain = getFromLocalStorage(STORAGE_KEYS.USE_LANGCHAIN, String(DEFAULT_VALUES.USE_LANGCHAIN));
     setApiKey(storedKey);
     setSelectedModel(storedModel);
+    setUseLangChain(storedLangChain === 'true');
 
     // Mark initial load complete on next tick to prevent auto-save trigger
     setTimeout(() => {
@@ -65,6 +68,17 @@ export const SettingPage: React.FC = () => {
     saveSetting(STORAGE_KEYS.GEMINI_MODEL, selectedModel);
   }, [selectedModel]);
 
+  // Auto-save LangChain preference when it changes
+  useEffect(() => {
+    // Don't auto-save during initial load
+    if (!initialLoadComplete.current) return;
+
+    const storedValue = getFromLocalStorage(STORAGE_KEYS.USE_LANGCHAIN);
+    const newValue = String(useLangChain);
+    if (newValue === storedValue) return;
+    saveSetting(STORAGE_KEYS.USE_LANGCHAIN, newValue);
+  }, [useLangChain]);
+
   const showStatus = (text: string) => {
     setSaveStatus(text);
     setTimeout(() => {
@@ -104,6 +118,21 @@ export const SettingPage: React.FC = () => {
               </option>
             ))}
           </select>
+        </div>
+
+        <div className="setting-field">
+          <label className="setting-label">
+            <input
+              type="checkbox"
+              checked={useLangChain}
+              onChange={(e) => setUseLangChain(e.target.checked)}
+              style={{ marginRight: '8px' }}
+            />
+            Use LangChain
+          </label>
+          <p className="muted-note" style={{ marginTop: '4px', fontSize: '12px' }}>
+            Automatically splits data into chunks and processes in parallel using multiple AI workers
+          </p>
         </div>
 
         {saveStatus && (

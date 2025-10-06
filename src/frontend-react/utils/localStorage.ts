@@ -40,3 +40,11 @@ export function getGeminiApiKey(): string | null {
 export function getGeminiModel(): string {
   return getFromLocalStorage(STORAGE_KEYS.GEMINI_MODEL, DEFAULT_VALUES.GEMINI_MODEL);
 }
+
+/**
+ * Get whether to use LangChain from localStorage
+ */
+export function getUseLangChain(): boolean {
+  const value = getFromLocalStorage(STORAGE_KEYS.USE_LANGCHAIN, String(DEFAULT_VALUES.USE_LANGCHAIN));
+  return value === 'true';
+}

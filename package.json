@@ -2,6 +2,8 @@
   "dependencies": {
     "@fortawesome/fontawesome-free": "^7.1.0",
     "@google/genai": "^1.22.0",
+    "@langchain/core": "^0.3.78",
+    "@langchain/google-genai": "^0.2.18",
     "@types/react": "^19.2.0",
     "@types/react-dom": "^19.2.0",
     "@ulixee/cloud": "^2.0.0-alpha.30",
@@ -12,6 +14,7 @@
     "express": "^5.1.0",
     "he": "^1.2.0",
     "html-to-text": "^9.0.5",
+    "langchain": "^0.3.35",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "semaphore-async-await": "^1.5.1",
