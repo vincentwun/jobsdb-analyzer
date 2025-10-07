@@ -91,7 +91,7 @@ app.post('/scrape', async (req, res) => {
     if (fs.existsSync(compiledScraper)) {
       const jsArgs = [compiledScraper, 'scrape', '-r', region, '-n', String(pagesArg), '-s', resultsDir];
       if (keywords && keywords.trim().length > 0) jsArgs.push('--keywords', keywords);
-      child = spawn('node', jsArgs, { cwd: projectRoot });
+      child = spawn('node', jsArgs, { cwd: projectRoot, env: process.env });
     } else if (fs.existsSync(sourceScraper)) {
       const tsArgs = ['-r', 'ts-node/register', sourceScraper, 'scrape', '-r', region, '-n', String(pagesArg), '-s', resultsDir];
       if (keywords && keywords.trim().length > 0) tsArgs.push('--keywords', keywords);
@@ -102,7 +102,7 @@ app.post('/scrape', async (req, res) => {
         args.push('--keywords');
         args.push(keywords);
       }
-      child = spawn('node', args, { cwd: projectRoot });
+      child = spawn('node', args, { cwd: projectRoot, env: process.env });
     }
 
     let stdout = '';
