@@ -27,8 +27,8 @@ Requirements:
 1. Clone the repository
 
 ```shell
-git clone https://github.com/vincentwun/jobsdb-scraper.git
-cd jobsdb-scraper
+git clone https://github.com/vincentwun/jobsdb-analyzer.git
+cd jobsdb-analyzer
 ```
 
 2. Install dependencies and build
@@ -70,4 +70,4 @@ The scraper uses the [Ulixee](https://nodejs.org/en/download/) stack. A small nu
 
 ## License
 
-MIT — `LICENSE`
+MIT
