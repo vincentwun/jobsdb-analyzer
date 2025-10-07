@@ -25,11 +25,9 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 RUN ln -s /usr/bin/chromium /usr/bin/chrome || true
 
-# install only production deps in runtime (will download again)
 COPY package*.json ./
 RUN npm ci --only=production --no-audit --no-fund
 
-# copy built artifacts
 COPY --from=builder /usr/src/app/dist ./dist
 RUN ln -s dist/backend/cloudnode.js cloudnode.js || true
 
