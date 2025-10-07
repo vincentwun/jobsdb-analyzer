@@ -6,10 +6,11 @@ import { extractJobContents } from '../utils/jobParser';
 import { FileSelector } from '../components/FileSelector';
 import { StatusMessage } from '../components/StatusMessage';
 import { AnalysisSection } from '../components/AnalysisSection';
-import { getGeminiApiKey, getGeminiModel } from '../utils/localStorage';
+import { getGeminiApiKey, getGeminiModel, getUseGeminiNano } from '../utils/localStorage';
 import { analysisRunner } from '../utils/analysisRunner';
 import { AnalysisPresetKey, AnalysisSectionState } from '../utils/analysisTypes';
 import { estimateTokenCount } from '../utils/langchain/langchainCoordinator';
+import { checkGeminiNanoAvailability } from '../utils/geminiNanoAnalysis';
 
 // Register Chart.js components
 Chart.register(...registerables);
@@ -60,15 +61,26 @@ export const AnalysisPage: React.FC = () => {
           return;
         }
 
-        // Only calculate tokens for AI-powered analysis (skills, certs)
-        // Local analysis (experience, location, education) consume 0 tokens
+        // Calculate token estimation based on actual data used by each analysis type
         let totalTokens = 0;
+        
         selectedAnalysisTypes.forEach(type => {
-          if (type === 'skills' || type === 'certs') {
+          if (type === 'location') {
+            // Location only processes location.label strings (minimal data)
+            const locationData = jobData.flatMap((page: any) => 
+              page.page?.jobs?.map((j: any) => j.jobDetails?.job?.location?.label || '') || []
+            );
+            const locationText = JSON.stringify(locationData);
+            totalTokens += estimateTokenCount(locationText);
+          } else if (type === 'experience' || type === 'education') {
+            // Experience and Education process full job content for pattern matching
+            const text = JSON.stringify(jobContents);
+            totalTokens += estimateTokenCount(text);
+          } else {
+            // Skills and Certs (AI-powered) process full job content
             const text = JSON.stringify(jobContents);
             totalTokens += estimateTokenCount(text);
           }
-          // experience, location, education are processed locally - no tokens used
         });
 
         setEstimatedTokens(totalTokens);
@@ -114,13 +126,36 @@ export const AnalysisPage: React.FC = () => {
       return;
     }
 
-    const apiKey = getGeminiApiKey();
-    if (!apiKey) {
-      setStatus('Gemini API key not found. Please configure it in Settings.', 'error');
-      return;
+    // Check if any AI-powered analysis is selected
+    const aiPoweredTypes = new Set<AnalysisPresetKey>(['skills', 'certs']);
+    const hasAIPowered = Array.from(selectedAnalysisTypes).some(type => aiPoweredTypes.has(type));
+    
+    // Only check AI availability if AI-powered analysis is selected
+    if (hasAIPowered) {
+      const useGeminiNano = getUseGeminiNano();
+      
+      // Check Gemini Nano availability if enabled
+      if (useGeminiNano) {
+        const availability = await checkGeminiNanoAvailability();
+        if (!availability.available) {
+          setStatus(`Gemini Nano unavailable: ${availability.message}`, 'error');
+          return;
+        }
+      } else {
+        // Check API key for cloud Gemini
+        const apiKey = getGeminiApiKey();
+        if (!apiKey) {
+          setStatus('Gemini API key not found. Please configure it in Settings.', 'error');
+          return;
+        }
+      }
     }
 
     setStatus('Loading job data...', 'loading');
+
+    // Get API key and model for AI-powered analysis
+    const apiKey = getGeminiApiKey() || '';
+    const model = getGeminiModel();
 
     try {
       const jobData = await loadFileData(selectedFile);
@@ -147,8 +182,6 @@ export const AnalysisPage: React.FC = () => {
       setSectionsState(initialState);
 
       setStatus(`Analyzing ${jobContents.length} jobs...`, 'loading');
-
-      const model = getGeminiModel();
 
       // Group sections by parallel execution
       const parallelSections = selectedSections.filter(s => s.parallel);

@@ -1,9 +1,20 @@
-// Brief: Dispatches analysis presets to appropriate local, Gemini, or LangChain runners
+// Brief: Dispatches analysis presets to appropriate local, Gemini, Gemini Nano, or LangChain runners
 import { AnalysisRunner, AnalysisResult, AnalysisPresetKey } from './analysisTypes';
 import { analyzeWithGemini, PRESET_PROMPTS } from './geminiAnalysis';
+import { analyzeWithGeminiNano } from './geminiNanoAnalysis';
 import { JobContentExtract, processLocationData } from './jobParser';
 import { langchainRunner } from './langchain/langchainRunner';
-import { getUseLangChain } from './localStorage';
+import { getUseLangChain, getUseGeminiNano } from './localStorage';
+
+// Gemini Nano runner (browser-based AI)
+export const geminiNanoRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
+  // Gemini Nano supports all analysis types
+  const resp = await analyzeWithGeminiNano(preset, jobContents);
+  return {
+    analysis_summary: resp.analysis_summary,
+    data_points: resp.data_points
+  };
+};
 
 // Default runner using Gemini AI for skills and certs
 export const geminiRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
@@ -125,8 +136,20 @@ export const educationRunner: AnalysisRunner = async (apiKey, model, preset, job
 // Combined runner that dispatches to appropriate runner based on preset
 export const analysisRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
   const useLangChain = getUseLangChain();
+  const useGeminiNano = getUseGeminiNano();
   
-  // Use LangChain for skills and certs if enabled
+  // Priority 1: Use Gemini Nano if enabled (browser-based, no API key needed)
+  if (useGeminiNano) {
+    console.log(`[AnalysisRunner] Using Gemini Nano for ${preset} analysis`);
+    try {
+      return await geminiNanoRunner(apiKey, model, preset, jobContents);
+    } catch (error: any) {
+      console.error(`[AnalysisRunner] Gemini Nano failed:`, error);
+      throw new Error(`Gemini Nano analysis failed: ${error.message}`);
+    }
+  }
+  
+  // Priority 2: Use LangChain for skills and certs if enabled
   if (useLangChain && (preset === 'skills' || preset === 'certs')) {
     console.log(`[AnalysisRunner] Using LangChain for ${preset} analysis`);
     try {
@@ -138,7 +161,7 @@ export const analysisRunner: AnalysisRunner = async (apiKey, model, preset, jobC
     }
   }
   
-  // Otherwise use default runners
+  // Priority 3: Use default runners (Gemini API or local analysis)
   switch (preset) {
     case 'skills':
     case 'certs':

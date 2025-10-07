@@ -22,9 +22,20 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use('/dist', express.static(path.join(__dirname, '.')));
+// Serve static files from dist directory
+// In dev mode: __dirname is src/, so go up one level
+// In prod mode: __dirname is dist/, so use current directory
+const distPath = fs.existsSync(path.join(__dirname, 'react-app.js'))
+  ? path.join(__dirname, '.')
+  : path.join(__dirname, '..', 'dist');
+app.use('/dist', express.static(distPath));
 
-const htmlPath = path.join(__dirname, 'index.html');
+// In dev mode: src/frontend-react/index.html, in prod: dist/index.html
+const htmlPath = fs.existsSync(path.join(__dirname, 'index.html'))
+  ? path.join(__dirname, 'index.html')
+  : path.join(__dirname, 'frontend-react', 'index.html');
+
+
 const mainRoutes = ['/', '/result.html', '/analysis.html', '/setting.html'];
 mainRoutes.forEach(route => {
   app.get(route, (req, res) => res.sendFile(htmlPath));

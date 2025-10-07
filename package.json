@@ -52,7 +52,7 @@
     "build:frontend": "node build-frontend.js",
     "build": "tsc && node build-frontend.js",
     "start": "node dist/server.js",
-    "dev": "npm run build --silent && npm run start",
+    "dev": "npm run build --slient && node dist/server.js",
     "clear": "rimraf dist build jobsdb_scrape_logs jobsdb_scrape_results"
   }
 }

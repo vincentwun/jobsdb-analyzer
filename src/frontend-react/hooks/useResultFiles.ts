@@ -1,6 +1,7 @@
 // Brief: Hook to load available result files and fetch selected file data
 import { useState, useEffect } from 'react';
 import { extractJobContents } from '../utils/jobParser';
+import { getSelectedResultFile, saveSelectedResultFile } from '../utils/localStorage';
 
 export function useResultFiles(autoLoadFromUrl: boolean = false) {
   const [files, setFiles] = useState<string[]>([]);
@@ -73,15 +74,34 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
   useEffect(() => {
     loadFileList();
 
-    // Auto-load file from URL if enabled
+    // Auto-load file from URL, localStorage, or both
     if (autoLoadFromUrl) {
       const params = new URLSearchParams(window.location.search);
-      const initialFile = params.get('file');
-      if (initialFile) {
-        setSelectedFile(initialFile);
+      const urlFile = params.get('file');
+      if (urlFile) {
+        setSelectedFile(urlFile);
+      } else {
+        // Fallback to localStorage if no URL param
+        const savedFile = getSelectedResultFile();
+        if (savedFile) {
+          setSelectedFile(savedFile);
+        }
+      }
+    } else {
+      // Load from localStorage when not using URL
+      const savedFile = getSelectedResultFile();
+      if (savedFile) {
+        setSelectedFile(savedFile);
       }
     }
   }, [autoLoadFromUrl]);
+
+  // Save to localStorage when selectedFile changes
+  useEffect(() => {
+    if (selectedFile) {
+      saveSelectedResultFile(selectedFile);
+    }
+  }, [selectedFile]);
 
   return {
     files,

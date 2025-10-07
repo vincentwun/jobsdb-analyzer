@@ -33,3 +33,16 @@ export function getUseLangChain(): boolean {
   const value = getFromLocalStorage(STORAGE_KEYS.USE_LANGCHAIN, String(DEFAULT_VALUES.USE_LANGCHAIN));
   return value === 'true';
 }
+
+export function getUseGeminiNano(): boolean {
+  const value = getFromLocalStorage(STORAGE_KEYS.USE_GEMINI_NANO, String(DEFAULT_VALUES.USE_GEMINI_NANO));
+  return value === 'true';
+}
+
+export function getSelectedResultFile(): string {
+  return getFromLocalStorage(STORAGE_KEYS.SELECTED_RESULT_FILE, '');
+}
+
+export function saveSelectedResultFile(filename: string): boolean {
+  return saveToLocalStorage(STORAGE_KEYS.SELECTED_RESULT_FILE, filename);
+}
