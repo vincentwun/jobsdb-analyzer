@@ -1,3 +1,4 @@
+# Use Node.js 18 slim image for build stage
 FROM node:18-bullseye-slim AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
@@ -5,8 +6,11 @@ RUN npm install --no-audit --no-fund
 COPY . .
 RUN npm run build
 
+# Use Node.js 18 slim image for runtime stage
 FROM node:18-bullseye-slim AS runtime
 WORKDIR /usr/src/app
+
+# Install Chromium and required libraries for Puppeteer
 RUN apt-get update \
   && apt-get install -y --no-install-recommends \
   chromium \
@@ -25,9 +29,12 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 RUN ln -s /usr/bin/chromium /usr/bin/chrome || true
 
+
+# Copy package files and install production dependencies
 COPY package*.json ./
 RUN npm ci --only=production --no-audit --no-fund
 
+# Copy built files from builder stage
 COPY --from=builder /usr/src/app/dist ./dist
 RUN ln -s dist/backend/cloudnode.js cloudnode.js || true
 
