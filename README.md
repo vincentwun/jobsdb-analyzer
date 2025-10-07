@@ -14,9 +14,9 @@ JobsDB Analyzer is an interactive web application designed for analyzing JobsDB 
 
 - ✅ Web UI
 - ✅ Integrated AI Analysis (Gemini)
-- 🟦 Integrated AI Analysis (Ollama)
-- ✅ Integrated Agent Workflow
+- ✅ Integrated Agent Workflow (Langchain)
 - ✅ Containerize
+- 🟦 Integrated AI Analysis (Ollama)
 
 ## Quick Start
 
