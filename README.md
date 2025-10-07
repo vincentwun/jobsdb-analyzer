@@ -71,4 +71,3 @@ The scraper uses the [Ulixee](https://nodejs.org/en/download/) stack. A small nu
 ## License
 
 MIT
-
