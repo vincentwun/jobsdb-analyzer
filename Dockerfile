@@ -1,13 +1,13 @@
-# Use Node.js 18 slim image for build stage
-FROM node:18-bullseye-slim AS builder
+# Use Node.js 20 slim image for build stage
+FROM node:20-bullseye-slim AS builder
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install --no-audit --no-fund
 COPY . .
 RUN npm run build
 
-# Use Node.js 18 slim image for runtime stage
-FROM node:18-bullseye-slim AS runtime
+# Use Node.js 20 slim image for runtime stage
+FROM node:20-bullseye-slim AS runtime
 WORKDIR /usr/src/app
 
 # Install Chromium and required libraries for Puppeteer
