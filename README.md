@@ -1,75 +1,92 @@
-# JobsDB-Analyzer
+# JobsDB Analyzer
 
-## Credits
+An interactive web application to scrape and analyze JobsDB job postings. The project collects job data, runs semantic analyses (using Google Gemini and LangChain workflows), and presents results with charts, tables and summaries to help you understand demand for skills, certifications, experience and locations.
 
-Original author: [krishgalani](https://github.com/krishgalani)
+## Highlights
 
-This project is built on top of the excellent open source project **[krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper)**.
+- Easy local setup for quick analysis
+- Built-in web UI for exploring results
+- Extensible analysis pipeline (Gemini + LangChain)
+- Supports saving and re-loading JSON scrape results
 
-## Overview
+## Quick Start (local)
 
-JobsDB Analyzer is an interactive web application designed for analyzing JobsDB job data. It automatically scrapes job postings and leverages Google Gemini AI to perform multi-dimensional semantic analysis on skills, certifications, experience, and locations. Analysis results are presented with modern charts, tables, and summaries.
+Prerequisites
 
-## Roadmap
+- Node.js 18+
+- npm
 
-✅ = Done, 🟦 = Developing
+1. Clone and enter the repo
 
-- ✅ Web UI
-- ✅ Integrated AI Analysis (Gemini)
-- ✅ Integrated Agent Workflow (Langchain)
-- ✅ Containerize
-- 🟦 Integrated AI Analysis (Ollama)
-- 🟦 Integrated PostgreSQL
-
-## Quick Start
-
-Requirements:
-
-- [Node.js 18+](https://nodejs.org/en/download/)
-
-1. Clone the repository
-
-```shell
+```bash
 git clone https://github.com/vincentwun/jobsdb-analyzer.git
 cd jobsdb-analyzer
 ```
 
-2. Install dependencies and build
+2. Install and build
 
-```shell
+```bash
 npm install
 npm run build
 ```
 
-3. Run the local web UI
+3. Start the server and open the UI
 
-```shell
+```bash
 npm start
 ```
 
-4. Open http://localhost:3000 in your browser.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
+4. Stop the server (when you're done)
 
-5. Verify and Turn off the Server
-
-```shell
-# Verify Turn off the Server
+```bash
+# show node processes
 pgrep -a node
-```
 
-```shell
-# Turn off the Server
+# stop the server process (example)
 pkill -f "node dist/server.js"
 ```
 
-## Warning
+## Docker (optional)
 
-This operation is not thread-safe. Do not run multiple instances against the same save directory concurrently.
+If you prefer to run the app inside a container, build and run the provided Dockerfile. The image bundles the built app and serves the UI.
 
-## How it works
+```bash
+# build image (from repo root)
+docker build -t jobsdb-analyzer:latest .
 
-The scraper uses the [Ulixee](https://nodejs.org/en/download/) stack. A small number of local cloud nodes host browser environments. Workers pop pages from a shared queue, parse job IDs from HTML responses, then fetch job details via backend GraphQL endpoints. Results are streamed and written to a local JSON file.
+# run container, mapping port 3000
+docker run -p 3000:3000 --rm jobsdb-analyzer:latest
+```
 
+Then open <http://localhost:3000>.
+
+## How it works (high-level)
+
+1. Scraper processes JobsDB pages and extracts job IDs and details.
+2. Scraped JSON results are saved under `jobsdb_scrape_results/`.
+3. The frontend loads result files and sends data to the analysis pipeline.
+4. AI-powered analysis (Google Gemini, or LangChain agents) aggregates skills, certifications, experience, and location insights.
+5. Results are visualized in charts, tables and text summaries in the web UI.
+
+## Roadmap
+
+Completed
+
+- ✅ Web UI
+- ✅ Integrated AI Analysis (Gemini)
+- ✅ Integrated Agent Workflow (LangChain)
+- ✅ Containerize
+
+In progress
+
+- 🟦 Integrated AI Analysis (Ollama)
+- 🟦 Integrated PostgreSQL
+
+## Credits
+
+Built from and adapted with improvements on top of [krishgalani/jobsdb-scraper](https://github.com/krishgalani/jobsdb-scraper). Thanks to the original author of the upstream project.
 
 ## License
 
