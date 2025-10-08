@@ -1,4 +1,4 @@
-// Brief: Types used by analysis runners and UI sections
+// Summary: Shared types for analysis results and runner interfaces
 export interface DataPoint {
   label: string;
   value: number;
@@ -6,13 +6,15 @@ export interface DataPoint {
 }
 
 export interface AnalysisResult {
+  // analysis_summary: Short text summary of the analysis
   analysis_summary: string;
+  // data_points: Array of counted items from analysis
   data_points: DataPoint[];
 }
 
 export type AnalysisPresetKey = 'skills' | 'certs' | 'experience' | 'location' | 'education';
 
-// Runner interface for executing analysis
+// AnalysisRunner: Function type to run an analysis preset
 export type AnalysisRunner = (
   apiKey: string,
   model: string,

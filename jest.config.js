@@ -1,9 +1,9 @@
 /** @type {import('ts-jest').JestConfigWithTsJest} **/
 module.exports = {
-  preset: 'ts-jest',
+  preset: "ts-jest",
   testEnvironment: "node",
   transform: {
-    "^.+.tsx?$": ["ts-jest",{}],
+    "^.+.tsx?$": ["ts-jest", {}],
   },
   silent: false,
   testTimeout: 100000, // 10 seconds for all tests

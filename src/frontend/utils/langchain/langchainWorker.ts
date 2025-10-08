@@ -2,13 +2,14 @@ import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { DataPoint } from '../analysisTypes';
 
-// Brief: Worker that processes a chunk using LangChain and returns DataPoint array
+// Summary: Send job texts to LangChain, parse JSON results, and return DataPoint arrays.
 export interface WorkerResult {
   chunkIndex: number;
   data: DataPoint[];
   error?: string;
 }
 
+// extractSkills: ask the model to find top technical skills and parse returned JSON.
 async function extractSkills(
   apiKey: string,
   model: string,
@@ -16,7 +17,7 @@ async function extractSkills(
 ): Promise<DataPoint[]> {
   console.log('[extractSkills] Job count:', jobContents.length);
   console.log('[extractSkills] First job preview:', jobContents[0]?.substring(0, 100));
-  
+
   const llm = new ChatGoogleGenerativeAI({
     apiKey,
     model: model,
@@ -46,32 +47,32 @@ Response format:
 
   const response = await llm.invoke(messages);
   const content = response.content.toString();
-  
+
   console.log('[LangChain Worker] Raw response:', content.substring(0, 200));
-  
-  // Try to extract JSON from markdown code block first
+
+  // NOTICE: Response parsing is fragile; try code block JSON first, then any JSON object.
   let jsonText = content.match(/```json\s*([\s\S]*?)```/)?.[1];
-  
-  // If not found, try to find plain JSON object
+
   if (!jsonText) {
     jsonText = content.match(/\{[\s\S]*\}/)?.[0];
   }
-  
+
   if (!jsonText) {
     console.error('[LangChain Worker] No JSON found in response');
     throw new Error('Failed to parse JSON from response');
   }
 
   const parsed = JSON.parse(jsonText);
-  
+
   if (!parsed.data || !Array.isArray(parsed.data)) {
     console.error('[LangChain Worker] Invalid data structure:', parsed);
     throw new Error('Invalid response format: missing or invalid data array');
   }
-  
+
   return parsed.data;
 }
 
+// extractCertifications: ask the model to find top certifications and parse returned JSON.
 async function extractCertifications(
   apiKey: string,
   model: string,
@@ -79,7 +80,7 @@ async function extractCertifications(
 ): Promise<DataPoint[]> {
   console.log('[extractCertifications] Job count:', jobContents.length);
   console.log('[extractCertifications] First job preview:', jobContents[0]?.substring(0, 100));
-  
+
   const llm = new ChatGoogleGenerativeAI({
     apiKey,
     model: model,
@@ -109,33 +110,33 @@ Response format:
 
   const response = await llm.invoke(messages);
   const content = response.content.toString();
-  
+
   console.log('[LangChain Worker] Raw response (certs):', content.substring(0, 200));
-  
-  // Try to extract JSON from markdown code block first
+
+  // NOTICE: Response parsing is fragile; try code block JSON first, then any JSON object.
   let jsonText = content.match(/```json\s*([\s\S]*?)```/)?.[1];
-  
-  // If not found, try to find plain JSON object
+
   if (!jsonText) {
     jsonText = content.match(/\{[\s\S]*\}/)?.[0];
   }
-  
+
   if (!jsonText) {
     console.error('[LangChain Worker] No JSON found in response. Full response:', content);
     throw new Error('Failed to parse JSON from response');
   }
 
   const parsed = JSON.parse(jsonText);
-  
+
   if (!parsed.data || !Array.isArray(parsed.data)) {
     console.error('[LangChain Worker] Invalid data structure:', parsed);
     throw new Error('Invalid response format: missing or invalid data array');
   }
-  
+
   return parsed.data;
 }
 
 // Worker agent main function
+// processChunk: entry point for a worker to process one chunk and return results.
 export async function processChunk(
   apiKey: string,
   model: string,
@@ -145,9 +146,9 @@ export async function processChunk(
 ): Promise<WorkerResult> {
   try {
     console.log(`[Worker ${chunkIndex}] Processing ${jobContents.length} jobs for ${analysisType}...`);
-    
+
     let data: DataPoint[];
-    
+
     if (analysisType === 'skills') {
       data = await extractSkills(apiKey, model, jobContents);
     } else {
@@ -155,7 +156,7 @@ export async function processChunk(
     }
 
     console.log(`[Worker ${chunkIndex}] Successfully extracted ${data.length} items`);
-    
+
     return {
       chunkIndex,
       data,

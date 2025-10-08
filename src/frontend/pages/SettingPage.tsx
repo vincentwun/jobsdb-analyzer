@@ -1,16 +1,17 @@
-// Brief: Settings page to configure Gemini API key, model, and LangChain option
+// Summary: Settings page to edit Gemini API key, choose model, and toggle features.
 import React, { useState, useEffect, useRef } from 'react';
 import { GEMINI_MODELS, STORAGE_KEYS, DEFAULT_VALUES } from '../utils/constants';
 import { saveToLocalStorage, getFromLocalStorage } from '../utils/localStorage';
 
+// SettingPage: edit and auto-save user preferences for Gemini and LangChain
 export const SettingPage: React.FC = () => {
   const [apiKey, setApiKey] = useState<string>('');
   const [selectedModel, setSelectedModel] = useState<string>(DEFAULT_VALUES.GEMINI_MODEL);
   const [useGeminiNano, setUseGeminiNano] = useState<boolean>(DEFAULT_VALUES.USE_GEMINI_NANO);
   const [useLangChain, setUseLangChain] = useState<boolean>(DEFAULT_VALUES.USE_LANGCHAIN);
   const [saveStatus, setSaveStatus] = useState<string>('');
-  
-  // Flag to prevent auto-save on initial mount
+
+  // Prevent auto-saving while initial values are loaded
   const initialLoadComplete = useRef<boolean>(false);
 
   // Load saved settings on mount
@@ -24,27 +25,25 @@ export const SettingPage: React.FC = () => {
     setUseGeminiNano(storedGeminiNano === 'true');
     setUseLangChain(storedLangChain === 'true');
 
-    // Mark initial load complete on next tick to prevent auto-save trigger
+    // allow auto-save after initial values are set
     setTimeout(() => {
       initialLoadComplete.current = true;
     }, 0);
   }, []);
 
-  // Timer ref for debouncing apiKey saves
+  // Debounce timer for saving API key
   const apiKeyTimer = useRef<number | null>(null);
 
-  // Shared save helper to avoid repeating showStatus/error handling
+  // saveSetting: helper to persist one key and show feedback
   const saveSetting = (storageKey: string, value: string) => {
     const success = saveToLocalStorage(storageKey, value);
     showStatus(success ? '✓ Saved' : 'Failed to save');
   };
 
-  // Auto-save API key when it changes (debounced)
+  // Auto-save API key when changed (debounced)
   useEffect(() => {
-    // Don't auto-save during initial load
     if (!initialLoadComplete.current) return;
 
-    // Skip if unchanged or empty
     const stored = getFromLocalStorage(STORAGE_KEYS.GEMINI_API_KEY);
     const trimmedKey = apiKey.trim();
     if (trimmedKey === '' || trimmedKey === stored) return;
@@ -62,9 +61,8 @@ export const SettingPage: React.FC = () => {
     };
   }, [apiKey]);
 
-  // Auto-save model when it changes (immediate)
+  // Auto-save model selection immediately when changed
   useEffect(() => {
-    // Don't auto-save during initial load
     if (!initialLoadComplete.current) return;
 
     const storedModel = getFromLocalStorage(STORAGE_KEYS.GEMINI_MODEL);
@@ -72,9 +70,8 @@ export const SettingPage: React.FC = () => {
     saveSetting(STORAGE_KEYS.GEMINI_MODEL, selectedModel);
   }, [selectedModel]);
 
-  // Auto-save LangChain preference when it changes
+  // Auto-save LangChain toggle
   useEffect(() => {
-    // Don't auto-save during initial load
     if (!initialLoadComplete.current) return;
 
     const storedValue = getFromLocalStorage(STORAGE_KEYS.USE_LANGCHAIN);
@@ -83,9 +80,8 @@ export const SettingPage: React.FC = () => {
     saveSetting(STORAGE_KEYS.USE_LANGCHAIN, newValue);
   }, [useLangChain]);
 
-  // Auto-save Gemini Nano preference when it changes
+  // Auto-save Gemini Nano toggle
   useEffect(() => {
-    // Don't auto-save during initial load
     if (!initialLoadComplete.current) return;
 
     const storedValue = getFromLocalStorage(STORAGE_KEYS.USE_GEMINI_NANO);
@@ -94,6 +90,7 @@ export const SettingPage: React.FC = () => {
     saveSetting(STORAGE_KEYS.USE_GEMINI_NANO, newValue);
   }, [useGeminiNano]);
 
+  // showStatus: temporary save feedback text
   const showStatus = (text: string) => {
     setSaveStatus(text);
     setTimeout(() => {

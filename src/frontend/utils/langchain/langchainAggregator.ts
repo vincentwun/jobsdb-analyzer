@@ -1,11 +1,12 @@
-// Brief: Merge and aggregate DataPoint arrays from multiple LangChain workers
+// Summary: Combine and summarize DataPoint arrays from multiple LangChain workers.
+// This file merges counts by label, sorts results, and computes simple stats.
 import { DataPoint } from '../analysisTypes';
 import { WorkerResult } from './langchainWorker';
 
+// mergeDataPoints: add up values for the same label across worker results.
 function mergeDataPoints(dataPointsArrays: DataPoint[][]): DataPoint[] {
   const merged = new Map<string, number>();
 
-  // Aggregate values by label
   for (const dataPoints of dataPointsArrays) {
     for (const point of dataPoints) {
       const current = merged.get(point.label) || 0;
@@ -13,7 +14,6 @@ function mergeDataPoints(dataPointsArrays: DataPoint[][]): DataPoint[] {
     }
   }
 
-  // Convert to array and sort by value
   return Array.from(merged.entries())
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value);
@@ -27,6 +27,7 @@ export interface AggregatorResult {
   errors: string[];
 }
 
+// aggregateResults: merge worker outputs, return top N labels and simple metadata.
 export function aggregateResults(
   workerResults: WorkerResult[],
   topN: number = 15
@@ -37,7 +38,6 @@ export function aggregateResults(
   const allDataPoints = successfulResults.map(r => r.data);
   const mergedData = mergeDataPoints(allDataPoints);
 
-  // Take top N results
   const topData = mergedData.slice(0, topN);
 
   return {
@@ -50,6 +50,7 @@ export function aggregateResults(
 }
 
 // Calculate statistics for aggregated data
+// calculateStats: compute total, average, max and min for a DataPoint array.
 export function calculateStats(data: DataPoint[]): {
   total: number;
   average: number;

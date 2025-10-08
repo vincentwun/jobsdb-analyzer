@@ -1,7 +1,8 @@
-// Brief: Sidebar navigation component
+// Summary: Left-side navigation with app title and links
 import React from 'react';
 import { useLocation } from '../hooks/useLocation';
 
+// Sidebar: shows app logo and navigation links, highlights active route
 export const Sidebar: React.FC = () => {
   const currentPath = useLocation();
 

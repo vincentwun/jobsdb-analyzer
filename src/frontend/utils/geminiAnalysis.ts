@@ -1,13 +1,15 @@
-// Brief: Helpers to call Gemini AI and normalize structured analysis responses
+// Summary: Helpers to call Gemini API and shape the JSON response
 import { GoogleGenAI, Type } from '@google/genai';
 import { JobContentExtract } from './jobParser';
 
+// AnalysisDataPoint: Single counted item from AI response
 export interface AnalysisDataPoint {
   label: string;
   value: number;
   category: string;
 }
 
+// GeminiAnalysisResponse: Expected JSON shape from Gemini
 export interface GeminiAnalysisResponse {
   analysis_summary: string;
   data_points: AnalysisDataPoint[];
@@ -47,6 +49,7 @@ const ANALYSIS_RESPONSE_SCHEMA = {
   propertyOrdering: ["analysis_summary", "data_points"]
 };
 
+// PRESET_PROMPTS: Prompts and schema for each preset
 export const PRESET_PROMPTS = {
   skills: {
     title: 'Technical Skills Analysis',
@@ -54,23 +57,13 @@ export const PRESET_PROMPTS = {
 
 Focus on skills like: Python, Java, JavaScript, TypeScript, Go, C++, SQL, Docker, Kubernetes, AWS, Azure, GCP, Terraform, Jenkins, Git, React, Node.js, etc.
 
-Group similar items (e.g., 'AWS', 'Amazon Web Services' → 'AWS'). 
+Group similar items (e.g., 'AWS', 'Amazon Web Services' -> 'AWS').
 
 CRITICAL INSTRUCTIONS:
 - For each skill, count how many DIFFERENT job postings mention it
 - The 'value' field MUST be a WHOLE NUMBER (integer) representing the actual count
 - DO NOT use percentages, decimals, or ratios
-- Example output format:
-  {
-    "analysis_summary": "Analysis of technical skills across job postings",
-    "data_points": [
-      {"label": "Python", "value": 15, "category": "Programming Language"},
-      {"label": "Docker", "value": 12, "category": "Tool"},
-      {"label": "AWS", "value": 10, "category": "Cloud Platform"}
-    ]
-  }
-
-Note: The values 15, 12, 10 are integer counts, not 0.15, 0.12, 0.10.`,
+`,
     schema: ANALYSIS_RESPONSE_SCHEMA
   },
   certs: {
@@ -85,21 +78,12 @@ CRITICAL INSTRUCTIONS:
 - For each certification, count how many DIFFERENT job postings require it
 - The 'value' field MUST be a WHOLE NUMBER (integer) representing the actual count
 - DO NOT use percentages, decimals, or ratios
-- Example output format:
-  {
-    "analysis_summary": "Analysis of required certifications across job postings",
-    "data_points": [
-      {"label": "AWS Certified Solutions Architect", "value": 8, "category": "Cloud"},
-      {"label": "CISSP", "value": 5, "category": "Security"},
-      {"label": "PMP", "value": 3, "category": "Project Management"}
-    ]
-  }
-
-Note: The values 8, 5, 3 are integer counts, not 0.8, 0.5, 0.3.`,
+`,
     schema: ANALYSIS_RESPONSE_SCHEMA
   }
 };
 
+// analyzeWithGemini: Send prompt to Gemini API and parse JSON response
 export async function analyzeWithGemini(
   apiKey: string,
   model: string,
@@ -112,14 +96,12 @@ export async function analyzeWithGemini(
     throw new Error(`Invalid preset: ${presetKey}`);
   }
 
-  // Combine job contents into a single text
   const combinedText = jobContents
     .map((job, idx) => `Job ${idx + 1}:\nSummary: ${job.abstract}\nDetails: ${job.content}`)
     .join('\n\n');
 
   const promptText = `${preset.systemPrompt}\n\nJob Descriptions:\n${combinedText}`;
 
-  // Initialize Gemini AI
   const ai = new GoogleGenAI({ apiKey });
 
   const response = await ai.models.generateContent({
@@ -139,17 +121,15 @@ export async function analyzeWithGemini(
 
   const parsedResult: GeminiAnalysisResponse = JSON.parse(resultText);
 
-  // Post-process: ensure all values are integers
   return normalizeAnalysisResult(parsedResult, jobContents.length);
 }
 
+// normalizeAnalysisResult: Ensure numbers are integers and scale if needed
 function normalizeAnalysisResult(
   result: GeminiAnalysisResponse,
   totalJobs: number
 ): GeminiAnalysisResponse {
   const maxValue = Math.max(...result.data_points.map(dp => dp.value));
-  
-  // If max value is less than 1, assume these are percentages/ratios and scale up
   const scalingNeeded = maxValue < 1 && maxValue > 0;
   
   return {

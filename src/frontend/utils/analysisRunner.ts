@@ -1,4 +1,4 @@
-// Brief: Dispatches analysis presets to appropriate local, Gemini, Gemini Nano, or LangChain runners
+// Summary: Choose and run the right analysis method for each preset
 import { AnalysisRunner, AnalysisResult, AnalysisPresetKey } from './analysisTypes';
 import { analyzeWithGemini, PRESET_PROMPTS } from './geminiAnalysis';
 import { analyzeWithGeminiNano } from './geminiNanoAnalysis';
@@ -7,8 +7,8 @@ import { langchainRunner } from './langchain/langchainRunner';
 import { getUseLangChain, getUseGeminiNano } from './localStorage';
 
 // Gemini Nano runner (browser-based AI)
+// geminiNanoRunner: Run analysis using the browser Gemini Nano model
 export const geminiNanoRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
-  // Gemini Nano supports all analysis types
   const resp = await analyzeWithGeminiNano(preset, jobContents);
   return {
     analysis_summary: resp.analysis_summary,
@@ -17,6 +17,7 @@ export const geminiNanoRunner: AnalysisRunner = async (apiKey, model, preset, jo
 };
 
 // Default runner using Gemini AI for skills and certs
+// geminiRunner: Use server Gemini API for skills and certs analysis
 export const geminiRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
   if (preset === 'skills' || preset === 'certs') {
     const resp = await analyzeWithGemini(apiKey, model, preset, jobContents);
@@ -29,6 +30,7 @@ export const geminiRunner: AnalysisRunner = async (apiKey, model, preset, jobCon
 };
 
 // Local runner for experience analysis
+// experienceRunner: Find and count experience-year mentions in job texts
 export const experienceRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
   if (preset !== 'experience') {
     throw new Error(`Experience runner only supports 'experience' preset`);
@@ -69,6 +71,7 @@ export const experienceRunner: AnalysisRunner = async (apiKey, model, preset, jo
   };
 };
 
+// getExperienceRange: Convert years number to a labeled range
 function getExperienceRange(years: number): string {
   if (years <= 2) return '0-2 years';
   if (years <= 5) return '3-5 years';
@@ -77,6 +80,7 @@ function getExperienceRange(years: number): string {
 }
 
 // Local runner for location analysis
+// locationRunner: Count jobs per location and return top results
 export const locationRunner: AnalysisRunner = async (apiKey, model, preset, jobData) => {
   if (preset !== 'location') {
     throw new Error(`Location runner only supports 'location' preset`);
@@ -96,6 +100,7 @@ export const locationRunner: AnalysisRunner = async (apiKey, model, preset, jobD
 };
 
 // Local runner for education requirements analysis
+// educationRunner: Detect education levels and count how often they appear
 export const educationRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
   if (preset !== 'education') {
     throw new Error(`Education runner only supports 'education' preset`);
@@ -103,7 +108,6 @@ export const educationRunner: AnalysisRunner = async (apiKey, model, preset, job
 
   const educationData: { [key: string]: number } = {};
   
-  // Education level patterns (English and Chinese)
   const educationPatterns = [
     { pattern: /\b(?:phd|ph\.d\.|doctorate|doctoral|博士)\b/gi, label: 'PhD / Doctorate' },
     { pattern: /\b(?:master|master'?s|硕士|碩士)\b/gi, label: "Master's Degree" },
@@ -134,11 +138,11 @@ export const educationRunner: AnalysisRunner = async (apiKey, model, preset, job
 };
 
 // Combined runner that dispatches to appropriate runner based on preset
+// analysisRunner: Pick the best runner based on settings and preset
 export const analysisRunner: AnalysisRunner = async (apiKey, model, preset, jobContents) => {
   const useLangChain = getUseLangChain();
   const useGeminiNano = getUseGeminiNano();
   
-  // Priority 1: Use Gemini Nano if enabled (browser-based, no API key needed)
   if (useGeminiNano) {
     console.log(`[AnalysisRunner] Using Gemini Nano for ${preset} analysis`);
     try {
@@ -149,19 +153,16 @@ export const analysisRunner: AnalysisRunner = async (apiKey, model, preset, jobC
     }
   }
   
-  // Priority 2: Use LangChain for skills and certs if enabled
   if (useLangChain && (preset === 'skills' || preset === 'certs')) {
     console.log(`[AnalysisRunner] Using LangChain for ${preset} analysis`);
     try {
       return await langchainRunner(apiKey, model, preset, jobContents);
     } catch (error: any) {
       console.error(`[AnalysisRunner] LangChain failed, falling back to Gemini SDK:`, error);
-      // Fallback to Gemini SDK
       return geminiRunner(apiKey, model, preset, jobContents);
     }
   }
   
-  // Priority 3: Use default runners (Gemini API or local analysis)
   switch (preset) {
     case 'skills':
     case 'certs':

@@ -1,4 +1,4 @@
-// Brief: Utilities to parse and extract job contents and summaries from scrape results
+// Summary: Parse raw scrape results into job summaries and analysis inputs
 export interface JobSummary {
   id: string;
   title: string;
@@ -24,6 +24,7 @@ function escapeForRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+// extractSkillsFromText: Find known skill keywords in a text
 function extractSkillsFromText(text: string): string[] {
   if (!text) return [];
   const lower = text.toLowerCase();
@@ -36,9 +37,7 @@ function extractSkillsFromText(text: string): string[] {
   return Array.from(found);
 }
 
-/**
- * Parse job summaries from JSON data (for ResultPage display)
- */
+// parseJobsFromJson: Turn raw JSON into a list of JobSummary for UI
 export function parseJobsFromJson(jsonData: any): JobSummary[] {
   const out: JobSummary[] = [];
   const pages = Array.isArray(jsonData) ? jsonData : (jsonData.page ? [jsonData] : []);
@@ -64,13 +63,10 @@ export function parseJobsFromJson(jsonData: any): JobSummary[] {
   return out;
 }
 
-/**
- * Extract job content (abstract + content) for analysis
- */
+// extractJobContents: Build array of {abstract, content} for analysis runners
 export function extractJobContents(jobData: any): JobContentExtract[] {
   const results: JobContentExtract[] = [];
 
-  // Handle array of pages format
   if (Array.isArray(jobData)) {
     for (const pageData of jobData) {
       if (pageData.page && Array.isArray(pageData.page.jobs)) {
@@ -90,7 +86,6 @@ export function extractJobContents(jobData: any): JobContentExtract[] {
     return results;
   }
 
-  // Fallback: Handle old format with jobsdb_scrape_results
   if (jobData.jobsdb_scrape_results && Array.isArray(jobData.jobsdb_scrape_results)) {
     for (const scrapeResult of jobData.jobsdb_scrape_results) {
       if (scrapeResult.job_list && Array.isArray(scrapeResult.job_list)) {
@@ -109,9 +104,7 @@ export function extractJobContents(jobData: any): JobContentExtract[] {
   return results;
 }
 
-/**
- * Process location data from job data
- */
+// processLocationData: Count jobs by location label from raw data
 export function processLocationData(jobData: any): Record<string, number> {
   const locationCounts: Record<string, number> = {};
 

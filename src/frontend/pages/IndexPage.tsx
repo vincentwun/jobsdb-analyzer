@@ -1,4 +1,4 @@
-// Brief: Page to configure and start the scraper, showing SSE progress
+// Summary: Page with a form to start the scraper and show live progress via SSE.
 import React, { useState, FormEvent, ChangeEvent } from 'react';
 import { safeCloseEventSource, parseSSEData, generateToken } from '../utils/eventSource';
 
@@ -22,6 +22,7 @@ interface ErrorEvent {
   error: string;
 }
 
+// IndexPage: form and UI for launching a scrape and showing progress logs
 export const IndexPage: React.FC = () => {
   const [formData, setFormData] = useState<ScrapeFormData>({
     region: 'hk',
@@ -34,15 +35,18 @@ export const IndexPage: React.FC = () => {
   const [resultLog, setResultLog] = useState<string>('Submit to run scraper; results will be shown here when complete.');
   const [isLoading, setIsLoading] = useState(false);
 
+  // handleInputChange: update form state for simple inputs
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  // handlePagesModeChange: switch pages mode and clear numPages when appropriate
   const handlePagesModeChange = (value: string) => {
     setFormData(prev => ({ ...prev, pagesMode: value, numPages: value === 'custom' ? prev.numPages : '' }));
   };
 
+  // handleSubmit: start SSE, post scrape request, and handle responses
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setResultLog('');

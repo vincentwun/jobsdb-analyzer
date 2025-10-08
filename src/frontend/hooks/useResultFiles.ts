@@ -1,8 +1,9 @@
-// Brief: Hook to load available result files and fetch selected file data
+// Summary: Manage list of result files, selected file state, and loading of file contents.
 import { useState, useEffect } from 'react';
 import { extractJobContents } from '../utils/jobParser';
 import { getSelectedResultFile, saveSelectedResultFile } from '../utils/localStorage';
 
+// useResultFiles: returns available files, selected file, loading state and helpers
 export function useResultFiles(autoLoadFromUrl: boolean = false) {
   const [files, setFiles] = useState<string[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>('');
@@ -10,7 +11,7 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
   const [error, setError] = useState<string>('');
   const [jobCount, setJobCount] = useState<number>(0);
 
-  // Load file list from server
+  // loadFileList: fetch list of saved result filenames from the server
   const loadFileList = async () => {
     try {
       const res = await fetch('/results');
@@ -24,16 +25,13 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
     }
   };
 
-  // Load specific file data
+  // loadFileData: fetch and parse one result file by name
   const loadFileData = async (filename: string): Promise<any> => {
-    if (!filename) {
-      return null;
-    }
+    if (!filename) return null;
 
-    // Don't attempt to load a file that we know isn't present
+    // If we have a cached file list, avoid requesting a missing file
     if (files.length > 0 && !files.includes(filename)) {
-      const msg = 'Selected file not found on server';
-      setError(msg);
+      setError('Selected file not found on server');
       return null;
     }
 
@@ -55,7 +53,7 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
     }
   };
 
-  // Auto-load job count when file is selected
+  // Update jobCount whenever selectedFile changes by extracting parsed job items
   useEffect(() => {
     const loadJobCount = async () => {
       if (!selectedFile) {
@@ -80,12 +78,11 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
     loadJobCount();
   }, [selectedFile]);
 
+  // On mount: load file list and pick a selected file from URL or localStorage if available
   useEffect(() => {
-    // Load file list, then choose a selected file only if it exists
     (async () => {
       const fileList = await loadFileList();
 
-      // Auto-load file from URL, localStorage, or both
       if (autoLoadFromUrl) {
         const params = new URLSearchParams(window.location.search);
         const urlFile = params.get('file');
@@ -97,7 +94,6 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
             setSelectedFile('');
           }
         } else {
-          // Fallback to localStorage if no URL param
           const savedFile = getSelectedResultFile();
           if (savedFile) {
             if (fileList.includes(savedFile)) {
@@ -109,7 +105,6 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
           }
         }
       } else {
-        // Load from localStorage when not using URL
         const savedFile = getSelectedResultFile();
         if (savedFile) {
           if (fileList.includes(savedFile)) {
@@ -123,11 +118,9 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
     })();
   }, [autoLoadFromUrl]);
 
-  // Save to localStorage when selectedFile changes
+  // Persist selected file to localStorage
   useEffect(() => {
-    if (selectedFile) {
-      saveSelectedResultFile(selectedFile);
-    }
+    if (selectedFile) saveSelectedResultFile(selectedFile);
   }, [selectedFile]);
 
   return {

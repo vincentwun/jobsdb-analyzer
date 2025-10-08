@@ -1,18 +1,16 @@
-// Brief: Helpers to split job data into token-based chunks for LangChain coordination
+// Summary: Break job arrays into token-based chunks to avoid model input limits.
+// Includes a simple token estimator that handles CJK vs Latin text density.
 export function estimateTokenCount(text: string): number {
-  // Detect CJK (Chinese/Japanese/Korean) characters
+  // Count CJK characters to estimate token density.
   const cjkChars = text.match(/[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff\uac00-\ud7af]/g)?.length || 0;
   const totalChars = text.length;
   const cjkRatio = cjkChars / totalChars;
 
   if (cjkRatio > 0.5) {
-    // Mostly CJK text: ~1.8 chars per token (more dense)
     return Math.ceil(totalChars / 1.8);
   } else if (cjkRatio > 0.1) {
-    // Mixed CJK and English: ~2.5 chars per token
     return Math.ceil(totalChars / 2.5);
   } else {
-    // Mostly English: ~4 chars per token
     return Math.ceil(totalChars / 4);
   }
 }
@@ -23,9 +21,10 @@ export interface DataChunk<T> {
   tokenCount: number;
 }
 
+// splitJobData: group jobs into chunks so each chunk stays under token limit.
 export function splitJobData<T>(
   jobs: T[],
-  maxTokensPerChunk: number = 100000 // Conservative limit (Gemini supports 1M)
+  maxTokensPerChunk: number = 100000
 ): DataChunk<T>[] {
   const chunks: DataChunk<T>[] = [];
   let currentChunk: T[] = [];
@@ -36,7 +35,6 @@ export function splitJobData<T>(
     const jobText = JSON.stringify(job);
     const jobTokens = estimateTokenCount(jobText);
 
-    // If single job exceeds limit, add it alone
     if (jobTokens > maxTokensPerChunk) {
       if (currentChunk.length > 0) {
         chunks.push({
@@ -55,7 +53,6 @@ export function splitJobData<T>(
       continue;
     }
 
-    // Check if adding this job would exceed limit
     if (currentTokenCount + jobTokens > maxTokensPerChunk && currentChunk.length > 0) {
       chunks.push({
         index: chunkIndex++,
@@ -70,7 +67,6 @@ export function splitJobData<T>(
     currentTokenCount += jobTokens;
   }
 
-  // Add remaining chunk
   if (currentChunk.length > 0) {
     chunks.push({
       index: chunkIndex,
@@ -89,6 +85,7 @@ export interface CoordinatorResult<T> {
   strategy: 'single' | 'parallel';
 }
 
+// coordinateAnalysis: create chunks and provide simple metadata for the run.
 export function coordinateAnalysis<T>(
   jobs: T[],
   maxTokensPerChunk: number = 100000

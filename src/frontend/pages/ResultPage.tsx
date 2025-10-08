@@ -1,13 +1,15 @@
-// Brief: Page to view parsed scrape results in human-readable summaries
+// Summary: Show parsed scrape results as readable job summaries and allow file selection.
 import React, { useState, useEffect } from 'react';
 import { useResultFiles } from '../hooks/useResultFiles';
 import { parseJobsFromJson, JobSummary } from '../utils/jobParser';
 import { FileSelector } from '../components/FileSelector';
 
+// ResultPage: list job summaries for the selected result file
 export const ResultPage: React.FC = () => {
   const { files, selectedFile, setSelectedFile, isLoading, error, jobCount, loadFileData } = useResultFiles(true);
   const [jobSummaries, setJobSummaries] = useState<JobSummary[]>([]);
 
+  // Load summaries when user picks a file
   useEffect(() => {
     if (selectedFile) {
       loadFile(selectedFile);
@@ -16,6 +18,7 @@ export const ResultPage: React.FC = () => {
     }
   }, [selectedFile]);
 
+  // loadFile: fetch file data and parse into job summaries
   const loadFile = async (filename: string) => {
     const data = await loadFileData(filename);
     if (data) {

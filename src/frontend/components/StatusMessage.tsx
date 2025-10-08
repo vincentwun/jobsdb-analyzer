@@ -1,4 +1,4 @@
-// Brief: Displays a colored status message (loading, success, error)
+// Summary: Small UI block to show loading/success/error messages with color
 import React from 'react';
 
 interface StatusMessageProps {
@@ -12,6 +12,7 @@ const STATUS_COLORS = {
   error: { bg: '#fee2e2', border: '#ef4444', text: '#991b1b' }
 };
 
+// StatusMessage: renders a colored status box for quick user feedback
 export const StatusMessage: React.FC<StatusMessageProps> = ({ message, type }) => {
   const color = STATUS_COLORS[type];
 

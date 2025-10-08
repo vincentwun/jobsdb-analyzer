@@ -1,8 +1,8 @@
-// Brief: Gemini Nano browser-based AI analysis (experimental)
+// Summary: Browser-based Gemini Nano helper and availability check
 import { JobContentExtract } from './jobParser';
 import { GeminiAnalysisResponse } from './geminiAnalysis';
 
-// Type definitions for Prompt API (browser-based Gemini Nano)
+// LanguageModel types describe the browser Prompt API (minimal)
 interface LanguageModelParams {
   defaultTemperature: number;
   maxTemperature: number;
@@ -73,6 +73,7 @@ const RESPONSE_SCHEMA = {
   required: ['analysis_summary', 'data_points']
 };
 
+// PRESET_PROMPTS: Small prompts for each preset used by Nano
 const PRESET_PROMPTS = {
   skills: {
     title: 'Technical Skills Analysis',
@@ -96,6 +97,7 @@ const PRESET_PROMPTS = {
   }
 };
 
+// checkGeminiNanoAvailability: Detect if browser supports Gemini Nano and its state
 export async function checkGeminiNanoAvailability(): Promise<{
   available: boolean;
   status: 'readily' | 'after-download' | 'unavailable' | 'not-supported';
@@ -112,7 +114,6 @@ export async function checkGeminiNanoAvailability(): Promise<{
   try {
     const status = await window.LanguageModel.availability();
     
-    // Handle 'readily' or 'available' status (model is ready)
     if (status === 'readily' || status === 'available') {
       return {
         available: true,
@@ -121,7 +122,6 @@ export async function checkGeminiNanoAvailability(): Promise<{
       };
     }
     
-    // Handle 'after-download' status
     if (status === 'after-download') {
       return {
         available: false,
@@ -130,7 +130,6 @@ export async function checkGeminiNanoAvailability(): Promise<{
       };
     }
     
-    // Handle 'unavailable' or any other status
     return {
       available: false,
       status: 'unavailable',
@@ -145,11 +144,11 @@ export async function checkGeminiNanoAvailability(): Promise<{
   }
 }
 
+// analyzeWithGeminiNano: Run analysis locally in browser using Gemini Nano
 export async function analyzeWithGeminiNano(
   presetKey: string,
   jobContents: JobContentExtract[]
 ): Promise<GeminiAnalysisResponse> {
-  // Check if Gemini Nano is available
   if (!window.LanguageModel) {
     throw new Error('Gemini Nano is not supported in this browser');
   }
@@ -164,7 +163,6 @@ export async function analyzeWithGeminiNano(
     throw new Error(`Invalid preset: ${presetKey}`);
   }
 
-  // Create session with output language specification
   const session = await window.LanguageModel.create({
     temperature: 0.7,
     topK: 40,
@@ -183,14 +181,12 @@ export async function analyzeWithGeminiNano(
   });
 
   try {
-    // Combine job contents
     const combinedText = jobContents
       .map((job, idx) => `Job ${idx + 1}:\nSummary: ${job.abstract}\nDetails: ${job.content}`)
       .join('\n\n');
 
     const promptText = `Analyze these job descriptions and return a JSON response following the schema:\n\n${combinedText}`;
 
-    // Prompt with JSON schema constraint
     const result = await session.prompt(promptText, {
       responseConstraint: RESPONSE_SCHEMA,
       omitResponseConstraintInput: false
@@ -198,20 +194,18 @@ export async function analyzeWithGeminiNano(
 
     const parsedResult: GeminiAnalysisResponse = JSON.parse(result);
 
-    // Normalize values to ensure they're integers
     return normalizeAnalysisResult(parsedResult, jobContents.length);
   } finally {
     session.destroy();
   }
 }
 
+// normalizeAnalysisResult: Ensure numeric values are integers and scale if given as ratios
 function normalizeAnalysisResult(
   result: GeminiAnalysisResponse,
   totalJobs: number
 ): GeminiAnalysisResponse {
   const maxValue = Math.max(...result.data_points.map(dp => dp.value));
-  
-  // If max value is less than 1, assume these are percentages/ratios and scale up
   const scalingNeeded = maxValue < 1 && maxValue > 0;
   
   return {

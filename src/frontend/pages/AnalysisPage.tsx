@@ -1,4 +1,4 @@
-// Brief: Page that runs AI analyses on selected result files and shows charts
+// Summary: Page for running AI analyses on a selected result file and showing chart results.
 import React, { useState, useEffect } from 'react';
 import { Chart, registerables } from 'chart.js';
 import { useResultFiles } from '../hooks/useResultFiles';
@@ -29,6 +29,7 @@ const ANALYSIS_SECTIONS: Array<{
   { key: 'education', title: 'Education Requirements', chartType: 'bar', parallel: false }
 ];
 
+// AnalysisPage: UI for selecting analyses, running them, and viewing results
 export const AnalysisPage: React.FC = () => {
   const { files, selectedFile, setSelectedFile, jobCount, loadFileData } = useResultFiles(false);
   const [statusMessage, setStatusMessage] = useState<{ text: string; type: 'loading' | 'success' | 'error' } | null>(null);
@@ -36,11 +37,12 @@ export const AnalysisPage: React.FC = () => {
   const [selectedAnalysisTypes, setSelectedAnalysisTypes] = useState<Set<AnalysisPresetKey>>(new Set());
   const [estimatedTokens, setEstimatedTokens] = useState<number>(0);
 
+  // setStatus: set a short status message shown to the user
   const setStatus = (text: string, type: 'loading' | 'success' | 'error') => {
     setStatusMessage({ text, type });
   };
 
-  // Calculate estimated tokens when file or analysis types change
+  // Calculate token estimate when file or selected analysis types change
   useEffect(() => {
     const calculateTokens = async () => {
       if (!selectedFile || selectedAnalysisTypes.size === 0) {
@@ -93,7 +95,7 @@ export const AnalysisPage: React.FC = () => {
     calculateTokens();
   }, [selectedFile, selectedAnalysisTypes, loadFileData]);
 
-  // Handle checkbox changes
+  // handleCheckboxChange: toggle one analysis type in the selection set
   const handleCheckboxChange = (key: AnalysisPresetKey) => {
     setSelectedAnalysisTypes(prev => {
       const newSet = new Set(prev);
@@ -106,7 +108,7 @@ export const AnalysisPage: React.FC = () => {
     });
   };
 
-  // Handle "All" checkbox
+  // handleAllCheckbox: toggle all analysis types on or off
   const handleAllCheckbox = () => {
     if (selectedAnalysisTypes.size === ANALYSIS_SECTIONS.length) {
       setSelectedAnalysisTypes(new Set());
@@ -115,6 +117,7 @@ export const AnalysisPage: React.FC = () => {
     }
   };
 
+  // handleAnalyzeAll: validate settings then run selected analyses
   const handleAnalyzeAll = async () => {
     if (!selectedFile) {
       setStatus('Please select a result file.', 'error');
