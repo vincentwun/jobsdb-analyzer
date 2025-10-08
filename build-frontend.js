@@ -4,7 +4,7 @@ const path = require('path');
 
 // Build JavaScript
 esbuild.build({
-  entryPoints: ['src/frontend-react/main.tsx'],
+  entryPoints: ['src/frontend/main.tsx'],
   bundle: true,
   outfile: 'dist/react-app.js',
   platform: 'browser',
@@ -30,7 +30,7 @@ esbuild.build({
 
 // Build CSS
 esbuild.build({
-  entryPoints: ['src/frontend-react/styles/fontawesome-bundle.css'],
+  entryPoints: ['public/fontawesome-bundle.css'],
   bundle: true,
   outfile: 'dist/fontawesome.css',
   loader: {
@@ -43,10 +43,10 @@ esbuild.build({
   }
 }).then(() => {
   // Copy main CSS
-  fs.copyFileSync('src/frontend-react/styles/main.css', 'dist/main.css');
+  fs.copyFileSync('public/main.css', 'dist/main.css');
   
   // Copy HTML
-  fs.copyFileSync('src/frontend-react/index.html', 'dist/index.html');
+  fs.copyFileSync('public/index.html', 'dist/index.html');
   
   console.log('✓ Frontend build completed successfully');
 }).catch((error) => {

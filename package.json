@@ -39,7 +39,6 @@
     "rimraf": "^6.0.1",
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
     "tslib": "^2.8.0",
     "typescript": "^5.6.3"
   },
@@ -53,7 +52,7 @@
     "build:frontend": "node build-frontend.js",
     "build": "tsc && node build-frontend.js",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
+    "dev": "npm run build && node dist/server.js",
     "clear": "rimraf dist build jobsdb_scrape_logs jobsdb_scrape_results"
   }
 }

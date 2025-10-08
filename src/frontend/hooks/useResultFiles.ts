@@ -17,14 +17,23 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
       if (!res.ok) throw new Error('Failed to fetch result list');
       const fileList: string[] = await res.json();
       setFiles(fileList);
+      return fileList;
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
+      return [];
     }
   };
 
   // Load specific file data
   const loadFileData = async (filename: string): Promise<any> => {
     if (!filename) {
+      return null;
+    }
+
+    // Don't attempt to load a file that we know isn't present
+    if (files.length > 0 && !files.includes(filename)) {
+      const msg = 'Selected file not found on server';
+      setError(msg);
       return null;
     }
 
@@ -72,28 +81,46 @@ export function useResultFiles(autoLoadFromUrl: boolean = false) {
   }, [selectedFile]);
 
   useEffect(() => {
-    loadFileList();
+    // Load file list, then choose a selected file only if it exists
+    (async () => {
+      const fileList = await loadFileList();
 
-    // Auto-load file from URL, localStorage, or both
-    if (autoLoadFromUrl) {
-      const params = new URLSearchParams(window.location.search);
-      const urlFile = params.get('file');
-      if (urlFile) {
-        setSelectedFile(urlFile);
+      // Auto-load file from URL, localStorage, or both
+      if (autoLoadFromUrl) {
+        const params = new URLSearchParams(window.location.search);
+        const urlFile = params.get('file');
+        if (urlFile) {
+          if (fileList.includes(urlFile)) {
+            setSelectedFile(urlFile);
+          } else {
+            setError('Selected file not found (from URL)');
+            setSelectedFile('');
+          }
+        } else {
+          // Fallback to localStorage if no URL param
+          const savedFile = getSelectedResultFile();
+          if (savedFile) {
+            if (fileList.includes(savedFile)) {
+              setSelectedFile(savedFile);
+            } else {
+              setError('Previously selected file not found; please choose a file');
+              setSelectedFile('');
+            }
+          }
+        }
       } else {
-        // Fallback to localStorage if no URL param
+        // Load from localStorage when not using URL
         const savedFile = getSelectedResultFile();
         if (savedFile) {
-          setSelectedFile(savedFile);
+          if (fileList.includes(savedFile)) {
+            setSelectedFile(savedFile);
+          } else {
+            setError('Previously selected file not found; please choose a file');
+            setSelectedFile('');
+          }
         }
       }
-    } else {
-      // Load from localStorage when not using URL
-      const savedFile = getSelectedResultFile();
-      if (savedFile) {
-        setSelectedFile(savedFile);
-      }
-    }
+    })();
   }, [autoLoadFromUrl]);
 
   // Save to localStorage when selectedFile changes

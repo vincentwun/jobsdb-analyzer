@@ -3,13 +3,18 @@ import HeroCore from '@ulixee/hero-core';
 import { TransportBridge } from '@ulixee/net';
 import { ConnectionToHeroCore } from '@ulixee/hero';
 import Hero from '@ulixee/hero';
-export const parseHtml = compile({}); // options passed here
+
+// Summary: Utilities for constructing JobsDB URLs, parsing HTML, and finding the last results page.
+export const parseHtml = compile({});
+// get_page_url: build a paginated jobs listing URL for a region.
 export function get_page_url(page: number, region : string): string {
     return `https://${region}.jobsdb.com/jobs?page=${page}`;
 }
+// get_base_url: base listing URL for a region.
 export function get_base_url(region : string): string {
     return `https://${region}.jobsdb.com/jobs`;
 }
+// isZeroResults: navigate and detect whether a page has no job cards.
 export async function isZeroResults(hero: Hero, page: number, region: string) {
     const { activeTab, document } = hero;
     await activeTab.goto(get_page_url(page, region));
@@ -18,7 +23,7 @@ export async function isZeroResults(hero: Hero, page: number, region: string) {
     const hasResults = await elem.$exists;
     return hasResults === false
 }
-//Binary search the last page
+// positionFromLastPage: probe adjacent pages to determine binary-search direction.
 async function positionFromLastPage(heroes : Hero[] , page : number, region : string) {
     let tasks = []
     for(let i = 0; i < 2;i++){
@@ -41,8 +46,7 @@ async function positionFromLastPage(heroes : Hero[] , page : number, region : st
     }
     return 'before'
 }
-//Perform a binary search
-//Perform a binary search
+// findLastPage: perform a binary search using headless heroes to locate the last results page.
 export async function findLastPage(region : string, heroes? : Hero[]){
     let heroCore;
     let selfInit = false
@@ -91,8 +95,6 @@ export async function findLastPage(region : string, heroes? : Hero[]){
     }
     if(ret === -1 || ret < 1){
         ret = -1
-        // Couldn't find last page
-        // console.log(`Couldn't find pages available to scrape in ${get_base_url(region)}`)
     }
     return ret 
 }

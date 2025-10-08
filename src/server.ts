@@ -30,10 +30,14 @@ const distPath = fs.existsSync(path.join(__dirname, 'react-app.js'))
   : path.join(__dirname, '..', 'dist');
 app.use('/dist', express.static(distPath));
 
-// In dev mode: src/frontend-react/index.html, in prod: dist/index.html
-const htmlPath = fs.existsSync(path.join(__dirname, 'index.html'))
-  ? path.join(__dirname, 'index.html')
-  : path.join(__dirname, 'frontend-react', 'index.html');
+// Prefer dist/index.html if built; otherwise use public/index.html (repo-level public folder)
+const distIndex = path.join(__dirname, '..', 'dist', 'index.html');
+const publicIndex = path.join(__dirname, '..', 'public', 'index.html');
+const htmlPath = fs.existsSync(distIndex)
+  ? distIndex
+  : fs.existsSync(publicIndex)
+    ? publicIndex
+    : path.join(__dirname, 'index.html');
 
 
 const mainRoutes = ['/', '/result.html', '/analysis.html', '/setting.html'];

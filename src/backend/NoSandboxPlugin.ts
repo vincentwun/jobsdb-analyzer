@@ -1,8 +1,9 @@
+// Summary: Plugin to add Chromium launch flags suitable for containerized environments.
 import { CorePlugin } from '@ulixee/hero-plugin-utils';
 export default class NoSandboxPlugin extends CorePlugin {
     static readonly id = 'NoSandboxPlugin';
+    // onNewBrowser: push recommended launch arguments for running Chromium in Docker.
     onNewBrowser(browser : any, userConfig: any) {
-        // Add necessary flags for running Chromium safely in Docker
         this.browserEngine.launchArguments.push(
             '--no-sandbox',
             '--disable-setuid-sandbox',

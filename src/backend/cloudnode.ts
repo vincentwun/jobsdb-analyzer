@@ -1,3 +1,4 @@
+// Summary: Launch and manage an Ulixee CloudNode instance, log its port, and handle graceful shutdown.
 import { CloudNode } from '@ulixee/cloud';
 import NoSandboxPlugin from './NoSandboxPlugin';
 import { createLogger } from './logger';
@@ -5,6 +6,7 @@ const cloudNodeIndex = parseInt(process.argv[2]);
 const enableLogging = process.argv[3] === 'true';
 const logger = createLogger(`cloudnode-${cloudNodeIndex}`, enableLogging);
 
+// startCloudNode: create and start a CloudNode, attach NoSandboxPlugin, log its port, and set up shutdown handlers.
 async function startCloudNode() {  
   const cloudNode = new CloudNode();
   cloudNode.heroCore.use(NoSandboxPlugin);
@@ -18,7 +20,7 @@ async function startCloudNode() {
     await cloudNode.close();
     process.exit(1);
   } 
-  // Graceful shutdown handler
+  // shutdown: gracefully close the CloudNode and exit the process with an appropriate code
   const shutdown = async () => {
     try {
       await cloudNode.close();
