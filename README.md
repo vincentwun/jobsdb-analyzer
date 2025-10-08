@@ -9,6 +9,24 @@ An interactive web application to scrape and analyze JobsDB job postings. The pr
 - Extensible analysis pipeline (Gemini + LangChain)
 - Supports saving and re-loading JSON scrape results
 
+## Example visualizations
+
+![Skills distribution](images/1-skills.png)
+
+*Figure 1 — Skills distribution chart*
+
+![Certifications demand](images/2-cert.png)
+
+*Figure 2 — Certifications demand chart*
+
+![Education levels](images/3-education.png)
+
+*Figure 3 — Education level breakdown*
+
+![Location heatmap](images/4-location.png)
+
+*Figure 4 — Job locations overview*
+
 ## Quick Start (local)
 
 Prerequisites
